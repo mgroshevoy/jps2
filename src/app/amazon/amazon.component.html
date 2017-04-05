@@ -1,0 +1,33 @@
+<div class="row">
+  <div class="col">
+    <h2>Amazon Orders</h2>
+  </div>
+  <div class="col-5 text-right">
+    <input type="file" class="btn form-control-file" (change)="fileChange($event)" placeholder="Import orders" accept=".csv">
+  </div>
+</div>
+<table class="table table-hover table-bordered table-sm">
+  <thead class="thead-inverse">
+    <th>Order ID:</th>
+    <th>Order Date:</th>
+    <th>Title:</th>
+    <th>ASIN/ISBN:</th>
+    <th>Shipment Date:</th>
+    <th>Quantity:</th>
+    <th>Item Total:</th>
+    <th>Address:</th>
+  </thead>
+  <tbody id="result">
+    <tr *ngFor="let order of orders">
+      <td>{{order.id}}</td>
+      <td>{{order.date | amt}}</td>
+      <td>{{order.title}}</td>
+      <td>{{order.asin_isbn}}</td>
+      <td>{{order.shipment_date | amt}}</td>
+      <td>{{order.quantity}}</td>
+      <td>{{order.total}}</td>
+      <td>{{order.shipping_name}}, {{order.shipping_street1}}, {{order.shipping_street2}}, {{order.shipping_city}}, {{order.shipping_state}}, {{order.shipping_zip}}</td>
+    </tr>
+  </tbody>
+</table>
+

@@ -1,0 +1,62 @@
+<div class="row">
+  <div class="col">
+    <h2>Accounting</h2>
+  </div>
+  <div class="col text-right">
+    <my-date-range-picker name="mydaterange" [options]="myDateRangePickerOptions"
+                          (dateRangeChanged)="onDateRangeChanged($event)"
+                          [(ngModel)]="myRange" required></my-date-range-picker>
+  </div>
+</div>
+<table class="table table-bordered">
+  <tr>
+    <td>Number of orders: {{orders.num}}</td>
+    <td>Total fee: {{orders.sumFee | number:'.2' }}</td>
+    <td>Total sum: {{orders.totalSum | number:'.2' }}</td>
+  </tr>
+  <tr>
+    <td>Total Amazon: {{orders.sumAmazon | number:'.2'}}</td>
+    <td>Total Walmart: {{orders.sumWalmart | number:'.2'}}</td>
+    <td>Total Profit: {{orders.totalProfit | number:'.2'}}</td>
+  </tr>
+</table>
+<table class="table table-hover table-bordered table-sm text-center">
+  <thead class="thead-inverse">
+  <tr>
+    <th>Selling Manager</th>
+    <th>Order ID:</th>
+    <th>Order status:</th>
+    <th>Date created:</th>
+    <th>Payment Status:</th>
+    <th>Date paid:</th>
+    <th>EBAY+PP Fee:</th>
+    <th>Total:</th>
+    <th>Amazon total:</th>
+    <th>Walmart total:</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let order of orders">
+    <td>{{order.sellingmanagernumber}}</td>
+    <td>{{order.id}}</td>
+    <td>{{order.order_status}}</td>
+    <td>{{order.created_time | pst}}</td>
+    <td>{{order.status}}</td>
+    <td>{{order.paid_time | pst}}</td>
+    <td>{{order | fee}}</td>
+    <td>{{order.total}}</td>
+    <td>
+      <input type="number" [(ngModel)]="order.amazon.total" (change)="changePrice($event, order, 'amazon');"
+             (focus)="selectPrice($event)" [hidden]="order.walmart.total != 0"
+             class="form-control text-center"
+             step="0.01" size="5" min="0">
+    </td>
+    <td>
+      <input type="number" [(ngModel)]="order.walmart.total" (change)="changePrice($event, order, 'walmart');"
+             (focus)="selectPrice($event);" [hidden]="order.amazon.total != 0"
+             class="form-control text-center"
+             step="0.01" size="5" min="0">
+    </td>
+  </tr>
+  </tbody>
+</table>

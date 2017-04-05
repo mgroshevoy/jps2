@@ -1,0 +1,78 @@
+<toaster-container [toasterconfig]="toasterconfig"></toaster-container>
+<div class="row">
+  <div class="col">
+    <h2>Ebay Orders</h2>
+  </div>
+  <div class="col-5 text-right">
+    <div class="row">
+      <button type="button" class="btn btn-success col-6 btn-block active" role="button" aria-pressed="true" (click)="updateData()">Update orders</button>
+      <div class="col-6">
+        <my-date-range-picker name="mydaterange" [options]="myDateRangePickerOptions"
+                              (dateRangeChanged)="onDateRangeChanged($event)"
+                              [(ngModel)]="myRange" required></my-date-range-picker>
+      </div>
+    </div>
+  </div>
+</div>
+<table class="table table-bordered">
+  <tr>
+    <td>Number of orders: {{orders.num}}</td>
+    <td>Total fee: {{orders.sumFee | number:'.2' }}</td>
+    <td>Total sum: {{orders.totalSum | number:'.2' }}</td>
+  </tr>
+</table>
+<table class="table table-hover table-bordered table-sm">
+  <thead class="thead-inverse">
+  <th>Selling Manager</th>
+  <th>Order ID:</th>
+  <th>Order status:</th>
+  <th>Date created:</th>
+  <th>Items:</th>
+  <th>Payment Status:</th>
+  <th>Date paid:</th>
+  <th>EBAY+PP Fee:</th>
+  <th>Total:</th>
+  <th>Address:</th>
+  </thead>
+  <tbody id="result">
+  <tr *ngFor="let order of orders">
+    <td>{{order.sellingmanagernumber}}</td>
+    <td>{{order.id}}</td>
+    <td>{{order.order_status}}</td>
+    <td>{{order.created_time | pst}}</td>
+    <td>
+      <table class="table table-bordered">
+        <tr *ngFor="let item of order.items">
+          <td>
+            <img src="{{item.Image}}" width="100" height="100">
+          </td>
+          <td>
+            <ul>
+              <li>{{item.Title}}</li>
+              <li>{{item.ItemID}}</li>
+              <li>{{item.SKU}}</li>
+            </ul>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td>{{order.status}}</td>
+    <td>{{order.paid_time | pst}}</td>
+    <td>{{order | fee}}</td>
+    <td>{{order.total}}</td>
+    <td>
+      <ul>
+        <li>{{order.address.name}}</li>
+        <li>{{order.address.phone}}</li>
+        <li>{{order.address.city}}</li>
+        <li>{{order.address.street1}}</li>
+        <li>{{order.address.street2}}</li>
+        <li>{{order.address.country_name}}</li>
+        <li>{{order.address.country}}</li>
+        <li>{{order.address.postal_code}}</li>
+      </ul>
+    </td>
+  </tr>
+  </tbody>
+</table>
+
