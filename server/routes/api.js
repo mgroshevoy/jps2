@@ -206,7 +206,7 @@ router.post('/walmart', (req, res, next) => {
                 tracking_number: order['Tracking Number']
               });
             } else {
-              obj.id = order['Order #'];
+              //obj.id = order['Order #'];
               obj.date = order['Date'];
               obj.address = order['Name+Address'];
               obj.total = order['Order total'] ? Number(order['Order total'].substr(1)) : 0;
