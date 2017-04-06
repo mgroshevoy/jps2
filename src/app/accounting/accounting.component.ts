@@ -13,11 +13,10 @@ import {FeePipe} from "../pipes/fee.pipe";
 export class AccountingComponent implements OnInit, OnChanges {
 
   orders: any = [];
-  defaultDates: any = {};
-  private myDateRangePickerOptions: IMyOptions = {
+  myDateRangePickerOptions: IMyOptions = {
     dateFormat: 'yyyy-mm-dd',
   };
-  private myRange: Object = {
+  myRange: Object = {
     beginDate: {
       year: moment().subtract(30, 'days').year(),
       month: moment().subtract(30, 'days').month() + 1,

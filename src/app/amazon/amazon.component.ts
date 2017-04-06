@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {AmazonService} from './amazon.service'
 import {Http} from "@angular/http";
 import {Observable} from "rxjs";
+import {ToasterService, ToasterConfig} from 'angular2-toaster';
 
 @Component({
   selector: 'app-amazon',
@@ -11,8 +12,15 @@ import {Observable} from "rxjs";
 export class AmazonComponent implements OnInit {
 
   orders: any = [];
+  private toasterService: ToasterService;
+  public toasterconfig: ToasterConfig =
+    new ToasterConfig({
+      positionClass: "toast-top-center",
+      timeout: 5000
+    });
 
-  constructor(private amazonService: AmazonService, private http: Http) {
+  constructor(private amazonService: AmazonService, private http: Http, toasterService: ToasterService) {
+    this.toasterService = toasterService;
   }
 
   ngOnInit() {
@@ -35,8 +43,9 @@ export class AmazonComponent implements OnInit {
         .map(res => res.json())
         .catch(error => Observable.throw(error))
         .subscribe(data => {
-          console.log(data);
-          this.orders = data;
+            console.log(data);
+            this.orders = data;
+            this.toasterService.pop('info', 'Amazon orders updated!');
           },
           error => console.error(error)
         )

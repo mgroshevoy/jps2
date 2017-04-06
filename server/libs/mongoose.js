@@ -20,7 +20,8 @@ const WalmartOrders = new Schema({
   date: Date,
   url: String,
   address: String,
-  total: Number
+  total: Number,
+  tracking_number: String
 });
 
 const AmazonOrders = new Schema({

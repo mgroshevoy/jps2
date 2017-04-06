@@ -192,6 +192,7 @@ router.post('/walmart', (req, res, next) => {
       console.error(err);
       return;
     }
+    console.log(data);
     for (let order of data) {
       if (order['Order #'] && order['Date'] && order['Name+Address']) {
         promises.push(
@@ -201,13 +202,15 @@ router.post('/walmart', (req, res, next) => {
                 id: order['Order #'],
                 date: order['Date'],
                 address: order['Name+Address'],
-                total: order['Order total'] ? Number(order['Order total'].substr(1)) : 0
+                total: order['Order total'] ? Number(order['Order total'].substr(1)) : 0,
+                tracking_number: order['Tracking Number']
               });
             } else {
               obj.id = order['Order #'];
               obj.date = order['Date'];
               obj.address = order['Name+Address'];
               obj.total = order['Order total'] ? Number(order['Order total'].substr(1)) : 0;
+              obj.tracking_number = order['Tracking Number'];
             }
             obj.save(function (err) {
               if (!err) {
