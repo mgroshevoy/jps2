@@ -13,7 +13,7 @@ import {ToasterService, ToasterConfig} from 'angular2-toaster';
 export class OrdersComponent implements OnInit {
 
   orders: any = [];
-  showStart: boolean = false;
+  //showStart: boolean = false;
   private toasterService: ToasterService;
   public toasterconfig : ToasterConfig =
     new ToasterConfig({
@@ -44,9 +44,6 @@ export class OrdersComponent implements OnInit {
   }
 
   onDateRangeChanged(event: IMyDateRangeModel) {
-    //console.log('onDateRangeChanged(): Begin date: ', event.beginDate, ' End date: ', event.endDate);
-    //console.log('onDateRangeChanged(): Formatted: ', event.formatted);
-    //console.log('onDateRangeChanged(): BeginEpoc timestamp: ', event.beginEpoc, ' - endEpoc timestamp: ', event.endEpoc);
     this.ordersService.getAllOrders(event).subscribe(orders => {
       this.orders = orders;
       this.calcFunc(orders);

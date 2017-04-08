@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import {ToasterService, ToasterConfig} from 'angular2-toaster';
 
 @Component({
   selector: 'app-main',
@@ -7,7 +8,16 @@ import { Component, OnInit } from '@angular/core';
 })
 export class MainComponent implements OnInit {
 
-  constructor() { }
+  private toasterService: ToasterService;
+  public toasterconfig : ToasterConfig =
+    new ToasterConfig({
+      positionClass: "toast-top-center",
+      timeout: 5000
+    });
+
+  constructor(toasterService: ToasterService) {
+    this.toasterService = toasterService;
+  }
 
   ngOnInit() {
   }

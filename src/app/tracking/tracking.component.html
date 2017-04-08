@@ -1,0 +1,42 @@
+<div class="row">
+  <div class="col">
+    <h2>Tracking</h2>
+  </div>
+</div>
+<table class="table table-hover table-bordered table-sm text-center">
+  <thead class="thead-inverse">
+  <tr>
+    <th>Selling Manager</th>
+    <th>Order ID:</th>
+    <th>Order status:</th>
+    <th>Date created:</th>
+    <th>Ebay tracking:</th>
+    <th>Amazon tracking:</th>
+    <th>Walmart tracking:</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let order of orders">
+    <td>{{order.sellingmanagernumber}}</td>
+    <td>{{order.id}}</td>
+    <td>{{order.order_status}}</td>
+    <td>{{order.created_time | pst}}</td>
+    <td>
+      <table *ngIf="order.items[0].ShipmentTrackingDetails[0]" class="table table-sm">
+        <tr *ngFor="let item of order.items">
+          <td>
+            <ul class="list-unstyled">
+              <li *ngFor="let shipment of item.ShipmentTrackingDetails">
+                {{shipment.ShippingCarrierUsed}}, {{shipment.ShipmentTrackingNumber}}
+              </li>
+            </ul>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td>{{order.amazon.tracking_number}}</td>
+    <td>{{order.walmart.tracking_number}}</td>
+  </tr>
+  </tbody>
+</table>
+

@@ -37,9 +37,6 @@ export class AccountingComponent implements OnInit, OnChanges {
 
   onDateRangeChanged(event: IMyDateRangeModel) {
     console.log(event);
-    //console.log('onDateRangeChanged(): Begin date: ', event.beginDate, ' End date: ', event.endDate);
-    //console.log('onDateRangeChanged(): Formatted: ', event.formatted);
-    //console.log('onDateRangeChanged(): BeginEpoc timestamp: ', event.beginEpoc, ' - endEpoc timestamp: ', event.endEpoc);
     this.accountingService.getAllOrders(event).subscribe(orders => {
       this.orders = orders;
       this.calcFunc(orders);
@@ -74,7 +71,6 @@ export class AccountingComponent implements OnInit, OnChanges {
         if (res.amazontotal) order.amazon.total = res.amazontotal;
         if (res.walmarttotal) order.walmart.total = res.walmarttotal;
         this.calcFunc(this.orders);
-        //        console.log($event.target.value);
       });
   }
 

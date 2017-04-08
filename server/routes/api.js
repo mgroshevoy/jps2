@@ -17,6 +17,10 @@ router.get('/', (req, res, next) => {
   res.send('api works');
 });
 
+router.get('/tracking', (req, res, next) => {
+  getOrders(res);
+});
+
 router.get('/orders/:dateFrom/:dateTo', (req, res, next) => {
   console.log(req.params);
   let dateFrom, dateTo;
@@ -34,6 +38,7 @@ router.get('/orders/:dateFrom/:dateTo', (req, res, next) => {
 });
 
 router.get('/orders/update', (req, res, next) => {
+  console.info('Updating...');
   getOrdersFromEbay().then(orders => {
     let promises = [];
     console.info('Saving...');
@@ -322,7 +327,6 @@ router.get('/accounting', (req, res, next) => {
 
 router.post('/accounting', (req, res, next) => {
   let order = req.body;
-  console.log(order);
   if (!order.id) {
     res.status(400);
     res.json({
@@ -487,11 +491,10 @@ function getOrdersFromEbay() {
       }
       return Promise.all(promises);
     }).then(results => {
-      var res = [];
+      let res = [];
       arrayOfOrders = _.concat(arrayOfOrders, results);
       _.forEach(arrayOfOrders, function (o) {
         _.forEach(o.Orders, function (order) {
-          console.log(order);
           res.push({
             OrderID: order.OrderID,
             CreatedTime: order.CreatedTime,
@@ -504,14 +507,15 @@ function getOrdersFromEbay() {
             PaidTime: order.PaidTime,
             Total: order.Total._,
             Address: order.ShippingAddress,
-            SellingManagerNumber: order.ShippingDetails.SellingManagerSalesRecordNumber
+            SellingManagerNumber: order.ShippingDetails.SellingManagerSalesRecordNumber,
           });
           _.forEach(order.Transactions, function (transaction) {
             res[res.length - 1].Items.push({
               ItemID: transaction.Item.ItemID,
               Title: transaction.Item.Title,
               SKU: transaction.Item.SKU,
-              FinalValueFee: transaction.FinalValueFee._
+              FinalValueFee: transaction.FinalValueFee._,
+              ShipmentTrackingDetails: transaction.ShippingDetails.ShipmentTrackingDetails?transaction.ShippingDetails.ShipmentTrackingDetails:[],
             });
           })
         })
@@ -540,7 +544,7 @@ function getOrdersFromEbay() {
       _.forEach(arrayOfResults, function (o, i) {
         _.forEach(o.Items, function (item, j) {
           element = _.findIndex(arrayOfSellerList, ['ItemID', arrayOfResults[i].Items[j].ItemID]);
-          if (element != -1) {
+          if (element !== -1) {
             arrayOfResults[i].Items[j].Image = arrayOfSellerList[element].PictureDetails.GalleryURL;
           }
         });
