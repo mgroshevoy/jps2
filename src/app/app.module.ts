@@ -19,11 +19,12 @@ import {AccountingComponent} from './accounting/accounting.component';
 import {AccountingService} from "./accounting/accounting.service";
 import {TrackingComponent} from './tracking/tracking.component';
 import {TrackingService} from './tracking/tracking.service';
-
 import {MainComponent} from './main/main.component';
+
 import {AmtPipe} from './pipes/amt.pipe';
 import {PstPipe} from './pipes/pst.pipe';
 import {FeePipe} from './pipes/fee.pipe';
+import {GetTimeStampPipe} from './pipes/get-time-stamp.pipe';
 
 // Define the routes
 const ROUTES = [
@@ -65,7 +66,8 @@ const ROUTES = [
     AmtPipe,
     PstPipe,
     FeePipe,
-    TrackingComponent
+    TrackingComponent,
+    GetTimeStampPipe
   ],
   imports: [
     BrowserModule,

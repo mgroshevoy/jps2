@@ -2,6 +2,9 @@
   <div class="col">
     <h2>Tracking</h2>
   </div>
+  <div *ngIf="orders[0]" class="col-4 text-right">
+    Updated: {{orders[0]._id | getTimeStamp}}
+  </div>
 </div>
 <table class="table table-hover table-bordered table-sm text-center">
   <thead class="thead-inverse">

@@ -1,11 +1,16 @@
 <toaster-container [toasterconfig]="toasterconfig"></toaster-container>
 <div class="row">
-  <div class="col">
+  <div class="col-2">
     <h2>Ebay Orders</h2>
   </div>
-  <div class="col-5 text-right">
+  <div *ngIf="orders[0]" class="col-4 text-right">
+    Updated: {{orders[0]._id | getTimeStamp}}
+  </div>
+  <div class="col-6 text-right">
     <div class="row">
-      <button type="button" class="btn btn-success col-6 btn-block active" role="button" aria-pressed="true" (click)="updateData()">Update orders</button>
+      <div class="col">
+        <button type="button" class="btn btn-success btn-block active" role="button" aria-pressed="true" (click)="updateData()">Update orders</button>
+      </div>
       <div class="col-6">
         <my-date-range-picker name="mydaterange" [options]="myDateRangePickerOptions"
                               (dateRangeChanged)="onDateRangeChanged($event)"

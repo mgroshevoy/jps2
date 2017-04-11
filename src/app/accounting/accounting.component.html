@@ -2,6 +2,9 @@
   <div class="col">
     <h2>Accounting</h2>
   </div>
+  <div *ngIf="orders[0]" class="col-4 text-right">
+    Updated: {{orders[0]._id | getTimeStamp}}
+  </div>
   <div class="col text-right">
     <my-date-range-picker name="mydaterange" [options]="myDateRangePickerOptions"
                           (dateRangeChanged)="onDateRangeChanged($event)"
