@@ -1,9 +1,15 @@
 require('dotenv').config();
+const fs = require("fs");
+const path = require('path');
+const parse = require('csv-parse');
 const ebay = require('ebay-api');
 const moment = require('moment');
 const _ = require('lodash');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const Nightmare = require('nightmare');
+require('nightmare-download-manager')(Nightmare);
+
 const EbayModel = require('../libs/mongoose').EbayModel;
 const AmazonModel = require('../libs/mongoose').AmazonModel;
 const WalmartModel = require('../libs/mongoose').WalmartModel;
@@ -11,7 +17,171 @@ const PurchaseModel = require('../libs/mongoose').PurchaseModel;
 
 class Orders {
 
-  constructor(){}
+  csvDir(fileName) {
+    return path.resolve('./uploads/', fileName?fileName:'');
+  }
+
+  /**
+   * Load CSV file to Array
+   * @param strFileName
+   * @returns {Promise}
+   */
+  loadCSV(strFileName) {
+    return new Promise((resolve, reject) => {
+      let parser = parse({
+        delimiter: ',',
+        columns: true
+      }, (err, data) => {
+        if (err) {
+          //console.error(err);
+          reject(err);
+        } else {
+          fs.unlinkSync(this.csvDir(strFileName));
+          resolve(data);
+        }
+      });
+      fs.createReadStream(this.csvDir(strFileName)).pipe(parser);
+    });
+  }
+
+  saveAmazonOrders(orders) {
+    let promises = [];
+    for (let order of orders) {
+      if (order['Order ID'] && order['Order Date'] && order['Item Total'] && order['ASIN/ISBN']) {
+        promises.push(
+          AmazonModel.findOne({id: order['Order ID']}, (err, obj) => {
+            if (obj === null) {
+              obj = new AmazonModel({
+                id: order['Order ID'],
+                date: order['Order Date'],
+                title: order['Title'],
+                category: order['Category'],
+                asin_isbn: order['ASIN/ISBN'],
+                unspsc: order['UNSPSC Code'],
+                condition: order['Condition'],
+                seller: order['Seller'],
+                list_price_unit: Number(order['List Price Per Unit'].substr(1)),
+                purchase_price_unit: Number(order['Purchase Price Per Unit'].substr(1)),
+                quantity: Number(order['Quantity']),
+                payment_type: order['Payment Instrument Type'],
+                customer_email: order['Ordering Customer Email'],
+                shipment_date: order['Shipment Date'],
+                shipping_name: order['Shipping Address Name'],
+                shipping_street1: order['Shipping Address Street 1'],
+                shipping_street2: order['Shipping Address Street 2'],
+                shipping_city: order['Shipping Address City'],
+                shipping_state: order['Shipping Address State'],
+                shipping_zip: order['Shipping Address Zip'],
+                order_status: order['Order Status'],
+                tracking_number: order['Carrier Name & Tracking Number'],
+                subtotal: Number(order['Item Subtotal'].substr(1)),
+                subtotal_tax: Number(order['Item Subtotal Tax'].substr(1)),
+                total: order['Item Total'].substr(1),
+                buyer_name: order['Buyer Name'],
+                currency: order['Currency']
+              });
+            } else {
+              obj.date = order['Order Date'];
+              obj.title = order['Title'];
+              obj.category = order['Category'];
+              obj.asin_isbn = order['ASIN/ISBN'];
+              obj.unspsc = order['UNSPSC Code'];
+              obj.condition = order['Condition'];
+              obj.seller = order['Seller'];
+              obj.list_price_unit = Number(order['List Price Per Unit'].substr(1));
+              obj.purchase_price_unit = Number(order['Purchase Price Per Unit'].substr(1));
+              obj.quantity = Number(order['Quantity']);
+              obj.payment_type = order['Payment Instrument Type'];
+              obj.customer_email = order['Ordering Customer Email'];
+              obj.shipment_date = order['Shipment Date'];
+              obj.shipping_name = order['Shipping Address Name'];
+              obj.shipping_street1 = order['Shipping Address Street 1'];
+              obj.shipping_street2 = order['Shipping Address Street 2'];
+              obj.shipping_city = order['Shipping Address City'];
+              obj.shipping_state = order['Shipping Address State'];
+              obj.shipping_zip = order['Shipping Address Zip'];
+              obj.order_status = order['Order Status'];
+              obj.tracking_number = order['Carrier Name & Tracking Number'];
+              obj.subtotal = Number(order['Item Subtotal'].substr(1));
+              obj.subtotal_tax = Number(order['Item Subtotal Tax'].substr(1));
+              obj.total = order['Item Total'].substr(1);
+              obj.buyer_name = order['Buyer Name'];
+              obj.currency = order['Currency'];
+            }
+            obj.save(function (err) {
+              if (!err) {
+                console.info("Order saved!");
+              } else {
+                console.error('Internal error: %s', err.message);
+              }
+            });
+          })
+        );
+      }
+    }
+    return Promise.all(promises);
+  }
+
+  /**
+   * Get Amazon orders list
+   * @returns {Promise}
+   */
+  getAmazonOrders() {
+    return new Promise((resolve, reject) => {
+      let email = process.env.AMAZON_EMAIL;
+      let password = process.env.AMAZON_PASS;
+      let objFile;
+      let nightmare = new Nightmare({
+        openDevTools: {
+          mode: 'detach'
+        },
+        show: true,
+        paths: {
+          downloads: this.csvDir()
+        }
+      });
+
+      nightmare.on('download', function (state, downloadItem) {
+        if (state === 'started') {
+          objFile = downloadItem;
+          nightmare.emit('download', downloadItem);
+        }
+      });
+
+      nightmare
+        .downloadManager()
+        .useragent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36")
+        .goto('https://www.amazon.com/gp/b2b/reports?')
+        .wait()
+        .type('form [name=email]', email)
+        .wait()
+        .type('form [name=password]', password)
+        .wait()
+        .click('#signInSubmit')
+        .wait('#report-last30Days')
+        .click('#report-last30Days')
+        .wait()
+        .click('#report-confirm')
+        .wait()
+        .waitDownloadsComplete()
+        .end()
+        .then(() => {
+          return this.loadCSV(objFile.filename);
+        })
+        .then((orders) => {
+          console.log(orders);
+          if(!orders) {
+              throw TypeError('Csv is empty!');
+          }
+          return this.saveAmazonOrders(orders);
+        })
+        .catch((error) => {
+          console.error(error);
+          reject({error: error});
+        });
+    });
+  }
+
 
   /**
    * Get orders from Ebay API
