@@ -169,7 +169,6 @@ class Orders {
           return this.loadCSV(objFile.filename);
         })
         .then((orders) => {
-          console.log(orders);
           if(!orders) {
               throw TypeError('Csv is empty!');
           }
@@ -354,14 +353,12 @@ class Orders {
                   reject(error);
                 }));
             }
-            console.log(results[i].Items[j].Image);
           });
         });
         return {prom: Promise.all(promises), orders: results};
       }).then((results) => {
         let promises = [];
         console.info('Saving...');
-        console.log(results);
         for (let order of results.orders) promises.push(this.saveOrder(order));
         return Promise.all(promises);
       }).then(() => {
