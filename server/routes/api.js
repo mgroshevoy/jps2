@@ -8,9 +8,15 @@ const EbayModel = require('../libs/mongoose').EbayModel;
 const AmazonModel = require('../libs/mongoose').AmazonModel;
 const WalmartModel = require('../libs/mongoose').WalmartModel;
 const PurchaseModel = require('../libs/mongoose').PurchaseModel;
-const getOrdersFromEbay = require('../libs/ebaygetter').getOrdersFromEbay;
-const saveOrder = require('../libs/ebaygetter').saveOrder;
-const getOrders = require('../libs/ebaygetter').getOrders;
+const Orders = require('../libs/ebaygetter');
+const schedule = require('node-schedule');
+
+let updateEveryHour = schedule.scheduleJob('45 * * * *', function () {
+  console.info('Updating ebay orders at: ' + moment().format('lll'));
+  Orders.getOrdersFromEbay().then(() => {
+    console.info('Updated ebay orders at: ' + moment().format('lll'));
+  });
+});
 
 /* GET api listing. */
 router.get('/', (req, res, next) => {
@@ -18,7 +24,7 @@ router.get('/', (req, res, next) => {
 });
 
 router.get('/tracking', (req, res, next) => {
-  getOrders(res);
+  Orders.getOrders(res);
 });
 
 router.get('/orders/:dateFrom/:dateTo', (req, res, next) => {
@@ -39,22 +45,8 @@ router.get('/orders/:dateFrom/:dateTo', (req, res, next) => {
 
 router.get('/orders/update', (req, res, next) => {
   console.info('Updating...');
-  getOrdersFromEbay().then(orders => {
-    let promises = [];
-    console.info('Saving...');
-    for (let order of orders) promises.push(saveOrder(order));
-    return Promise.all(promises);
-  }).then(() => {
-    let dateFrom, dateTo;
-    dateFrom = moment().subtract(30, 'days').startOf('day').add(7, 'hours');
-    dateTo = moment().startOf('day').add(7, 'hours');
-    EbayModel
-      .where('created_time').gte(dateFrom).lte(dateTo)
-      .find((err, orders) => {
-        if (err) res.status(500).send(error);
-        res.status(200).json(orders);
-      })
-      .sort('-created_time');
+  Orders.getOrdersFromEbay(res).then(() => {
+    console.info('Updated');
   });
 });
 
@@ -248,11 +240,11 @@ router.get('/accounting/:dateFrom/:dateTo', (req, res, next) => {
   else dateFrom = moment().subtract(30, 'days').format('YYYY-MM-DD');
   if (moment(req.params.dateTo).isValid()) dateTo = req.params.dateTo;
   else dateTo = moment().format('YYYY-MM-DD');
-  getOrders(res, dateFrom, dateTo);
+  Orders.getOrders(res, dateFrom, dateTo);
 });
 
 router.get('/accounting', (req, res, next) => {
-  getOrders(res);
+  Orders.getOrders(res);
 });
 
 router.post('/accounting', (req, res, next) => {
@@ -326,5 +318,3 @@ router.post('/accounting', (req, res, next) => {
 });
 
 module.exports = router;
-
-

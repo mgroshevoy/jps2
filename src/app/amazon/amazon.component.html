@@ -3,11 +3,11 @@
   <div class="col">
     <h2>Amazon Orders</h2>
   </div>
-  <div *ngIf="orders[0]" class="col-4 text-right">
-    Updated: {{orders[0]._id | getTimeStamp}}
-  </div>
-  <div class="col-5 text-right">
-    <input type="file" class="btn form-control-file" (change)="fileChange($event)" placeholder="Import orders" accept=".csv">
+  <div class="col text-right">
+    <div *ngIf="orders[0]" class="d-inline">
+      Updated: {{orders[0]._id | getTimeStamp}}
+    </div>
+    <input type="file" class="btn form-control-file d-inline" (change)="fileChange($event)" placeholder="Import orders" accept=".csv">
   </div>
 </div>
 <table class="table table-hover table-bordered table-sm">
