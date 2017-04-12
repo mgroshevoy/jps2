@@ -36,6 +36,7 @@
     <th>Total:</th>
     <th>Amazon total:</th>
     <th>Walmart total:</th>
+    <th>Profit:</th>
   </tr>
   </thead>
   <tbody>
@@ -60,6 +61,7 @@
              class="form-control text-center"
              step="0.01" size="5" min="0">
     </td>
+    <td [attr.bgcolor]="(order.total-order.walmart.total-order.amazon.total-(order|fee))<0?'red':'green'">{{(order.total-order.walmart.total-order.amazon.total-(order|fee))|number:'.2'}}</td>
   </tr>
   </tbody>
 </table>
