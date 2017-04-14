@@ -11,8 +11,8 @@ export class OrdersService {
 
   getAllOrders(myRange: any) {
     return this.http.get('api/orders/'
-      + moment(myRange.beginJsDate).subtract(1, 'month').format('YYYY-MM-DD') + '/'
-      + moment(myRange.endJsDate).subtract(1, 'month').format('YYYY-MM-DD'))
+      + myRange.beginDate.year + '-' + myRange.beginDate.month + '-' + myRange.beginDate.day +'/'
+      + myRange.endDate.year + '-' + myRange.endDate.month + '-' + myRange.endDate.day)
       .map(res => res.json());
   }
 
