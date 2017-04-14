@@ -19,10 +19,10 @@ export class AccountingComponent implements OnInit, OnChanges {
   myRange: Object = {
     beginDate: {
       year: moment().subtract(30, 'days').year(),
-      month: moment().subtract(30, 'days').month() + 1,
+      month: moment().subtract(30, 'days').month()+1,
       day: moment().subtract(30, 'days').date()
     },
-    endDate: {year: moment().year(), month: moment().month() + 1, day: moment().date()}
+    endDate: {year: moment().year(), month: moment().month()+1, day: moment().date()}
   };
 
   constructor(private accountingService: AccountingService) {

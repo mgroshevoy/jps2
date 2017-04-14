@@ -10,10 +10,13 @@ export class AccountingService {
   }
 
   getAllOrders(myRange: any) {
-    console.log(myRange);
-    return this.http.get('api/accounting/'
-      + myRange.beginDate.year + '-' + myRange.beginDate.month + '-' + myRange.beginDate.day +'/'
-      + myRange.endDate.year + '-' + myRange.endDate.month + '-' + myRange.endDate.day)
+    let begin = myRange.beginDate.year + '-'
+      + (myRange.beginDate.month < 10 ? '0' + myRange.beginDate.month : myRange.beginDate.month)
+      + '-' + (myRange.beginDate.day < 10 ? '0' + myRange.beginDate.day : myRange.beginDate.day);
+    let end = myRange.endDate.year + '-'
+      + (myRange.endDate.month < 10 ? '0' + myRange.endDate.month : myRange.endDate.month)
+      + '-' + (myRange.endDate.day < 10 ? '0' + myRange.endDate.day : myRange.endDate.day);
+    return this.http.get('api/accounting/' + begin + '/' + end)
       .map(res => res.json());
   }
 
