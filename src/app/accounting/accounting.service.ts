@@ -11,8 +11,8 @@ export class AccountingService {
 
   getAllOrders(myRange: any) {
     return this.http.get('api/accounting/'
-      + moment(myRange.beginDate).subtract(1, 'month').format('YYYY-MM-DD') + '/'
-      + moment(myRange.endDate).subtract(1, 'month').format('YYYY-MM-DD'))
+      + moment(myRange.beginJsDate).subtract(1, 'month').format('YYYY-MM-DD') + '/'
+      + moment(myRange.endJsDate).subtract(1, 'month').format('YYYY-MM-DD'))
       .map(res => res.json());
   }
 
