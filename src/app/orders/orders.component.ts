@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {OrdersService} from '../orders/orders.service';
+import {OrdersService} from './orders.service';
 import {FeePipe} from "../pipes/fee.pipe";
 import {IMyOptions, IMyDateRangeModel} from 'mydaterangepicker';
 import * as moment from 'moment';
@@ -13,7 +13,7 @@ import {ToasterService, ToasterConfig} from 'angular2-toaster';
 export class OrdersComponent implements OnInit {
 
   orders: any = [];
-  //showStart: boolean = false;
+
   private toasterService: ToasterService;
   public toasterconfig : ToasterConfig =
     new ToasterConfig({
@@ -23,7 +23,7 @@ export class OrdersComponent implements OnInit {
   myDateRangePickerOptions: IMyOptions = {
     dateFormat: 'yyyy-mm-dd',
   };
-  myRange: Object = {
+  myRange: object = {
     beginDate: {
       year: moment().subtract(30, 'days').year(),
       month: moment().subtract(30, 'days').month()+1,
@@ -56,7 +56,7 @@ export class OrdersComponent implements OnInit {
     this.orders.num = orders.length;
     for (let order of orders) {
       this.orders.totalSum += order.total;
-      this.orders.sumFee += Number(new FeePipe().transform(order));
+      this.orders.sumFee += +new FeePipe().transform(order);
     }
   }
 

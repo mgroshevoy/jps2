@@ -48,7 +48,7 @@
     <td>{{order.status}}</td>
     <td>{{order.paid_time | pst}}</td>
     <td>{{order | fee}}</td>
-    <td>{{order.total}}</td>
+    <td>{{order | total}}</td>
     <td>
       <input type="number" [(ngModel)]="order.amazon.total" (change)="changePrice($event, order, 'amazon');"
              (focus)="selectPrice($event)" [hidden]="order.walmart.total != 0"
@@ -61,8 +61,8 @@
              class="form-control text-center"
              step="0.01" size="5" min="0">
     </td>
-    <td [attr.bgcolor]="(order.total-order.walmart.total-order.amazon.total-(order|fee))<0?'red':'green'">
-      {{(order.total-order.walmart.total-order.amazon.total-(order|fee))|number:'.2'}}
+    <td [attr.bgcolor]="((order|total)-order.walmart.total-order.amazon.total-(order|fee))<0?'red':'green'">
+      {{((order|total)-order.walmart.total-order.amazon.total-(order|fee))|number:'.2'}}
     </td>
   </tr>
   </tbody>

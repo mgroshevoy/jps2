@@ -67,14 +67,14 @@
     <td>{{order.total}}</td>
     <td>
       <ul>
-        <li>{{order.address.name}}</li>
-        <li>{{order.address.phone}}</li>
-        <li>{{order.address.city}}</li>
-        <li>{{order.address.street1}}</li>
+        <li *ngIf="order.address.name">{{order.address.name}}</li>
+        <li *ngIf="order.address.phone">{{order.address.phone}}</li>
+        <li *ngIf="order.address.city">{{order.address.city}}</li>
+        <li *ngIf="order.address.street1">{{order.address.street1}}</li>
         <li *ngIf="order.address.street2">{{order.address.street2}}</li>
-        <li>{{order.address.country_name}}</li>
-        <li>{{order.address.country}}</li>
-        <li>{{order.address.postal_code}}</li>
+        <li *ngIf="order.address.country_name">{{order.address.country_name}}</li>
+        <li *ngIf="order.address.country">{{order.address.country}}</li>
+        <li *ngIf="order.address.postal_code">{{order.address.postal_code}}</li>
       </ul>
     </td>
   </tr>

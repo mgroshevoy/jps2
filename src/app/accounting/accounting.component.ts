@@ -16,7 +16,7 @@ export class AccountingComponent implements OnInit, OnChanges {
   myDateRangePickerOptions: IMyOptions = {
     dateFormat: 'yyyy-mm-dd',
   };
-  myRange: Object = {
+  myRange: object = {
     beginDate: {
       year: moment().subtract(30, 'days').year(),
       month: moment().subtract(30, 'days').month()+1,
@@ -50,8 +50,10 @@ export class AccountingComponent implements OnInit, OnChanges {
     this.orders.sumWalmart = 0;
     this.orders.num = orders.length;
     for (let order of orders) {
-      this.orders.totalSum += order.total;
-      this.orders.sumFee += Number(new FeePipe().transform(order));
+      if (order.paid_time) {
+        this.orders.totalSum += order.total;
+      }
+      this.orders.sumFee += +new FeePipe().transform(order);
       this.orders.sumAmazon += order.amazon.total;
       this.orders.sumWalmart += order.walmart.total;
     }

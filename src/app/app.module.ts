@@ -25,6 +25,7 @@ import {AmtPipe} from './pipes/amt.pipe';
 import {PstPipe} from './pipes/pst.pipe';
 import {FeePipe} from './pipes/fee.pipe';
 import {GetTimeStampPipe} from './pipes/get-time-stamp.pipe';
+import {TotalPipe} from './pipes/total.pipe';
 
 // Define the routes
 const ROUTES = [
@@ -67,7 +68,8 @@ const ROUTES = [
     PstPipe,
     FeePipe,
     TrackingComponent,
-    GetTimeStampPipe
+    GetTimeStampPipe,
+    TotalPipe
   ],
   imports: [
     BrowserModule,
