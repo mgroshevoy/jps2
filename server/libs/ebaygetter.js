@@ -466,7 +466,7 @@ class Orders {
       .then(result => {
         let i, promises = [];
         for (i = 0; i < result.length; i++) {
-          if (result[i].address.name) promises.push(AmazonModel
+          promises.push(AmazonModel
             .findOne({
               shipping_name: {
                 '$regex': result[i].address.name,
@@ -491,7 +491,7 @@ class Orders {
           }
           promises = [];
           for (i = 0; i < result.length; i++) {
-            if (result[i].address.name) promises.push(WalmartModel
+            promises.push(WalmartModel
               .findOne({
                 address: {
                   '$regex': result[i].address.name, // + '.*' + result[i].address.postal_code.substr(0, 5),
