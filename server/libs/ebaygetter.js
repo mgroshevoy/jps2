@@ -484,9 +484,10 @@ class Orders {
         }
         Promise.all(promises).then(amazonOrders => {
           for (i = 0; i < result.length; i++) {
-            result[i]._doc.amazon = amazonOrders[i] || {total: 0};
-            if (!result[i]._doc.amazon) {
-              result[i]._doc.amazon.total = 0;
+            if (result[i].address.name) {
+              result[i]._doc.amazon = amazonOrders[i] || {total: 0};
+            } else {
+              result[i]._doc.amazon = {total: 0};
             }
           }
           promises = [];
@@ -505,7 +506,11 @@ class Orders {
           }
           Promise.all(promises).then(walmartOrders => {
             for (i = 0; i < result.length; i++) {
-              result[i]._doc.walmart = walmartOrders[i] || {total: 0};
+              if (result[i].address.name) {
+                result[i]._doc.walmart = walmartOrders[i] || {total: 0};
+              } else {
+                result[i]._doc.walmart = {total: 0};
+              }
             }
             promises = [];
             for (i = 0; i < result.length; i++) {
