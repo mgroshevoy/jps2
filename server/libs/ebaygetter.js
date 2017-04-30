@@ -300,6 +300,7 @@ class Orders {
               Address: order.ShippingAddress,
               SellingManagerNumber: order.ShippingDetails.SellingManagerSalesRecordNumber,
             });
+            console.log(order.Transactions);
             _.forEach(order.Transactions, function (transaction) {
               res[res.length - 1].Items.push({
                 ItemID: transaction.Item.ItemID,
@@ -307,6 +308,7 @@ class Orders {
                 SKU: transaction.Item.SKU,
                 FinalValueFee: transaction.FinalValueFee._,
                 ShipmentTrackingDetails: transaction.ShippingDetails.ShipmentTrackingDetails ? transaction.ShippingDetails.ShipmentTrackingDetails : [],
+                QuantityPurchased: transaction.QuantityPurchased,
               });
             })
           })
@@ -473,7 +475,7 @@ class Orders {
                 '$options': 'i'
               },
               date: {
-                $gte: moment(result[i].created_time).startOf('day').toISOString(),
+                $gte: moment(result[i].created_time).startOf('day').subtract(3, 'days').toISOString(),
                 $lt: moment(result[i].created_time).startOf('day').add(6, 'days').toISOString()
               },
               shipping_zip: {
@@ -502,7 +504,7 @@ class Orders {
                   '$options': 'i'
                 },
                 date: {
-                  $gte: moment(result[i].created_time).startOf('day').toISOString(),
+                  $gte: moment(result[i].created_time).startOf('day').subtract(3, 'days').toISOString(),
                   $lt: moment(result[i].created_time).startOf('day').add(6, 'days').toISOString()
                 },
                 total: {
