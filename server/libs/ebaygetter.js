@@ -18,7 +18,7 @@ const PurchaseModel = require('../libs/mongoose').PurchaseModel;
 class Orders {
 
   csvDir(fileName) {
-    return path.resolve('./uploads/', fileName?fileName:'');
+    return path.resolve('./uploads/', fileName ? fileName : '');
   }
 
   /**
@@ -169,8 +169,8 @@ class Orders {
           return this.loadCSV(objFile.filename);
         })
         .then((orders) => {
-          if(!orders) {
-              throw TypeError('Csv is empty!');
+          if (!orders) {
+            throw TypeError('Csv is empty!');
           }
           return this.saveAmazonOrders(orders);
         })
@@ -479,6 +479,9 @@ class Orders {
               shipping_zip: {
                 '$regex': result[i].address.postal_code.substr(0, 5),
                 '$options': 'i'
+              },
+              total: {
+                $gt: 0
               }
             }));
         }
@@ -501,6 +504,9 @@ class Orders {
                 date: {
                   $gte: moment(result[i].created_time).startOf('day').toISOString(),
                   $lt: moment(result[i].created_time).startOf('day').add(6, 'days').toISOString()
+                },
+                total: {
+                  $gt: 0
                 }
               }));
           }
