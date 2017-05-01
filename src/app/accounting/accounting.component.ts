@@ -15,6 +15,7 @@ export class AccountingComponent implements OnInit, OnChanges {
   orders: any = [];
   myDateRangePickerOptions: IMyOptions = {
     dateFormat: 'yyyy-mm-dd',
+    selectionTxtFontSize: '16px',
   };
   myRange: object = {
     beginDate: {

@@ -1,21 +1,21 @@
 <toaster-container [toasterconfig]="toasterconfig"></toaster-container>
 <div class="row">
-  <div class="col">
+  <div class="col align-middle">
     <h2>Ebay Orders</h2>
   </div>
-  <div class="col">
-    <div class="row">
-      <div *ngIf="orders[0]" class="col">
-        Updated: {{orders[0]._id | getTimeStamp}}
-      </div>
-      <div class="col text-center">
-        <button type="button" class="btn btn-success active" role="button" aria-pressed="true" (click)="updateData()">Update orders</button>
-      </div>
-      <div class="col">
-        <my-date-range-picker name="mydaterange" [options]="myDateRangePickerOptions"
-                              (dateRangeChanged)="onDateRangeChanged($event)"
-                              [(ngModel)]="myRange" required></my-date-range-picker>
-      </div>
+  <div class="col text-right align-middle">
+    <div *ngIf="orders[0]" class="d-inline-block">
+      Updated: {{orders[0]._id | getTimeStamp}}
+    </div>
+    <div class="d-inline-block align-middle">
+      <button type="button" class="btn btn-success active" role="button" aria-pressed="true" (click)="updateData()">
+        Update orders
+      </button>
+    </div>
+    <div class="d-inline-block align-middle">
+      <my-date-range-picker name="mydaterange" [options]="myDateRangePickerOptions"
+                            (dateRangeChanged)="onDateRangeChanged($event)"
+                            [(ngModel)]="myRange" required></my-date-range-picker>
     </div>
   </div>
 </div>

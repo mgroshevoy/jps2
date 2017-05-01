@@ -22,6 +22,7 @@ export class OrdersComponent implements OnInit {
     });
   myDateRangePickerOptions: IMyOptions = {
     dateFormat: 'yyyy-mm-dd',
+    selectionTxtFontSize: '16px',
   };
   myRange: object = {
     beginDate: {
