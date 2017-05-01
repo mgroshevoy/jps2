@@ -2,7 +2,7 @@ import {Component, OnChanges, OnInit, SimpleChange} from '@angular/core';
 import * as moment from 'moment';
 import {AccountingService} from './accounting.service';
 import {IMyOptions, IMyDateRangeModel} from 'mydaterangepicker';
-import {FeePipe} from "../pipes/fee.pipe";
+import {FeePipe} from '../pipes/fee.pipe';
 
 @Component({
   selector: 'app-accounting',
@@ -20,10 +20,10 @@ export class AccountingComponent implements OnInit, OnChanges {
   myRange: object = {
     beginDate: {
       year: moment().subtract(30, 'days').year(),
-      month: moment().subtract(30, 'days').month()+1,
+      month: moment().subtract(30, 'days').month() + 1,
       day: moment().subtract(30, 'days').date()
     },
-    endDate: {year: moment().year(), month: moment().month()+1, day: moment().date()}
+    endDate: {year: moment().year(), month: moment().month() + 1, day: moment().date()}
   };
 
   constructor(private accountingService: AccountingService) {
@@ -50,7 +50,7 @@ export class AccountingComponent implements OnInit, OnChanges {
     this.orders.sumAmazon = 0;
     this.orders.sumWalmart = 0;
     this.orders.num = orders.length;
-    for (let order of orders) {
+    for (const order of orders) {
       if (order.paid_time) {
         this.orders.totalSum += order.total;
       }
@@ -61,7 +61,7 @@ export class AccountingComponent implements OnInit, OnChanges {
     this.orders.totalProfit = this.orders.totalSum - this.orders.sumFee - this.orders.sumAmazon - this.orders.sumWalmart;
   }
 
-  changePrice($event, order, store) {
+  changePrice($event, order) {
     this.accountingService
       .setPurchasePrice({
         id: order.id,
@@ -71,8 +71,12 @@ export class AccountingComponent implements OnInit, OnChanges {
         walmartid: order.walmart.id
       })
       .subscribe((res: any) => {
-        if (res.amazontotal) order.amazon.total = res.amazontotal;
-        if (res.walmarttotal) order.walmart.total = res.walmarttotal;
+        if (res.amazontotal) {
+          order.amazon.total = res.amazontotal;
+        }
+        if (res.walmarttotal) {
+          order.walmart.total = res.walmarttotal;
+        }
         this.calcFunc(this.orders);
       });
   }
