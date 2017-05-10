@@ -69,7 +69,7 @@ function updateTrackingNumbers() {
                 console.log('---\n');
                 TrackingNumbersModel.findOne({tracking_number: item.number}, (err, obj) => {
                   if (obj) {
-                    obj.tracking_number = item.number;
+                    //obj.tracking_number = item.number;
                     obj.billed = moment(item.dateBilled).add(moment().utcOffset(), 'm');
                     obj.delivery = moment(item.dateDelivery).add(moment().utcOffset(), 'm');
                     obj.country = item.country;
@@ -114,9 +114,12 @@ router.get('/tracking', (req, res, next) => {
 });
 
 router.get('/tn', (req,res,next) => {
-  TrackingNumbersModel.find({delivery: {$gt: moment().add(2, 'd')}}, (error, obj) => {
-    res.send(obj);
-  });
+  TrackingNumbersModel
+    .where({delivery: {$gt: moment().add(2, 'd')}})
+    .find((error, obj) => {
+      res.status(200).json(obj);
+  })
+    .sort('delivery');
 });
 
 router.get('/tn/list', (req,res,next) => {

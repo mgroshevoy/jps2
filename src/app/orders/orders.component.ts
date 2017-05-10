@@ -54,7 +54,6 @@ export class OrdersComponent implements OnInit {
   calcFunc(orders: any) {
     this.orders.totalSum = 0;
     this.orders.sumFee = 0;
-    this.orders.num = orders.length;
     for (const order of orders) {
       this.orders.totalSum += order.total;
       this.orders.sumFee += +new FeePipe().transform(order);
