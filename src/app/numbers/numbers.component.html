@@ -1,0 +1,29 @@
+<div class="row">
+  <div class="col">
+    <h2>Tracking Numbers</h2>
+  </div>
+  <div class="col text-right">
+  </div>
+</div>
+<table class="table table-hover table-bordered table-sm">
+  <thead class="thead-inverse">
+  <th>Tracking number:</th>
+  <th>Delivery date:</th>
+  <th>Date billed:</th>
+  <th>Country:</th>
+  <th>State:</th>
+  <th>City:</th>
+  <th>Weight:</th>
+  </thead>
+  <tbody id="result">
+  <tr *ngFor="let tracking of trackings">
+    <td>{{tracking.tracking_number}}</td>
+    <td>{{tracking.delivery | date: 'MM/dd/yyyy'}}</td>
+    <td>{{tracking.billed  | date: 'MM/dd/yyyy'}}</td>
+    <td>{{tracking.country}}</td>
+    <td>{{tracking.state}}</td>
+    <td>{{tracking.city}}</td>
+    <td>{{tracking.weight}}</td>
+  </tr>
+  </tbody>
+</table>

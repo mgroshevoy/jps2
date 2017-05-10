@@ -12,5 +12,4 @@ export class AmtPipe implements PipeTransform {
     }
     return moment(value).utcOffset(-4).format('L');
   }
-
 }

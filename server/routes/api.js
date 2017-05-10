@@ -8,7 +8,10 @@ const EbayModel = require('../libs/mongoose').EbayModel;
 const AmazonModel = require('../libs/mongoose').AmazonModel;
 const WalmartModel = require('../libs/mongoose').WalmartModel;
 const PurchaseModel = require('../libs/mongoose').PurchaseModel;
+const TrackingAccountsModel = require('../libs/mongoose').TrackingAccountsModel;
+const TrackingNumbersModel = require('../libs/mongoose').TrackingNumbersModel;
 const Orders = require('../libs/ebaygetter');
+const UPS = require('../libs/UPS');
 const schedule = require('node-schedule');
 
 let updateEveryTwoHours = schedule.scheduleJob('00 */2 * * *', function () {
@@ -20,8 +23,8 @@ let updateEveryTwoHours = schedule.scheduleJob('00 */2 * * *', function () {
     .catch(() => {
       console.info('Amazon orders update is failed!');
     });
+  updateTrackingNumbers();
 });
-
 
 let updateEveryHour = schedule.scheduleJob('00 * * * *', function () {
   console.info('Updating eBay orders at: ' + moment().format('lll'));
@@ -35,6 +38,72 @@ let updateEveryHour = schedule.scheduleJob('00 * * * *', function () {
     });
 });
 
+function updateTrackingNumbers() {
+  const MAX_ERRORS = 10;
+  const MAX_COUNT = 500; // How many invoice numbers to catch.
+  //const NUMBER = '1ZA3720W0313828028';
+  const DATE = moment().add(2, 'days');
+
+  TrackingAccountsModel.find({}, (error, accounts) => {
+    if (accounts) {
+      console.log(accounts);
+      accounts.forEach((account) => {
+        UPS.getInvoiceNumberForDate(
+          account.tracking_account.substr(2, 6),
+          account.tracking_account.substr(8, 2),
+          account.tracking_account.substr(10, 5),
+          DATE, MAX_COUNT, MAX_ERRORS,
+
+          (error, list) => {
+            console.log('Total numbers found: ' + list.length + '\n');
+            list.forEach((item) => {
+              if (new Date(item.dateDelivery) > moment().add(2, 'd')) {
+                console.log(item.number);
+                console.log('Billed on:   ' + item.dateBilled);
+                console.log('Delivery on: ' + item.dateDelivery);
+                console.log('Country:     ' + item.country);
+                console.log('State:       ' + item.state);
+                console.log('City:        ' + item.city);
+                console.log('Type:        ' + item.category);
+                console.log('Weight:      ' + item.weight + ' g.');
+                console.log('---\n');
+                TrackingNumbersModel.findOne({tracking_number: item.number}, (err, obj) => {
+                  if (obj) {
+                    obj.tracking_number = item.number;
+                    obj.billed = moment(item.dateBilled).add(moment().utcOffset(), 'm');
+                    obj.delivery = moment(item.dateDelivery).add(moment().utcOffset(), 'm');
+                    obj.country = item.country;
+                    obj.state = item.state;
+                    obj.city = item.city;
+                    obj.category = item.category;
+                    obj.weight = item.weight;
+                    obj.tracking_account_id = account._id;
+                  } else {
+                    obj = new TrackingNumbersModel({
+                      tracking_number: item.number,
+                      billed: moment(item.dateBilled).add(moment().utcOffset(), 'm'),
+                      delivery: moment(item.dateDelivery).add(moment().utcOffset(), 'm'),
+                      country: item.country,
+                      state: item.state,
+                      city: item.city,
+                      category: item.category,
+                      weight: item.weight,
+                      tracking_account_id: account._id
+                    });
+                  }
+                  obj.save();
+                });
+              }
+              account.tracking_account = item.number
+            });
+            account.save();
+          }
+        );
+      });
+    }
+  });
+}
+
 /* GET api listing. */
 router.get('/', (req, res, next) => {
   res.send('api works');
@@ -42,6 +111,47 @@ router.get('/', (req, res, next) => {
 
 router.get('/tracking', (req, res, next) => {
   Orders.getOrders(res);
+});
+
+router.get('/tn', (req,res,next) => {
+  TrackingNumbersModel.find({delivery: {$gt: moment().add(2, 'd')}}, (error, obj) => {
+    res.send(obj);
+  });
+});
+
+router.get('/tn/list', (req,res,next) => {
+  TrackingAccountsModel.find({}, (error, obj) => {
+    res.send(obj);
+  });
+});
+
+router.get('/tn/update', (req, res, next) => {
+  updateTrackingNumbers();
+});
+
+router.get('/tn/add/:trackingNumber', (req, res, next) => {
+  TrackingAccountsModel.findOne({tracking_account: new RegExp(req.params.trackingNumber)}, (error, obj) => {
+    if (obj) {
+      res.send(obj);
+    } else {
+      obj = new TrackingAccountsModel({
+        tracking_account: req.params.trackingNumber
+      });
+      obj.save();
+      res.send(obj);
+    }
+  });
+});
+
+router.get('/tn/del/:trackingNumber', (req, res, next) => {
+  TrackingAccountsModel.findOne({tracking_account: new RegExp(req.params.trackingNumber)}, (error, obj) => {
+    if (obj) {
+      res.send(obj);
+      obj.remove();
+    } else {
+      res.send(req.params);
+    }
+  });
 });
 
 router.get('/orders/:dateFrom/:dateTo', (req, res, next) => {

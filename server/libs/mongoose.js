@@ -85,12 +85,32 @@ const PurchasePrice = new Schema({
   walmartprice: Number
 });
 
+const TrackingAccounts = new Schema({
+  tracking_account: {type: String, unique: true, required: true},
+});
+
+const TrackingNumbers = new Schema({
+  tracking_number: {type: String, unique: true, required: true},
+  billed: Date,
+  delivery: Date,
+  country: String,
+  state: String,
+  city: String,
+  type: String,
+  weight: Number,
+  tracking_account_id: {}
+});
+
 const WalmartModel = mongoose.model('WalmartOrders', WalmartOrders);
 const AmazonModel = mongoose.model('AmazonOrders', AmazonOrders);
 const EbayModel = mongoose.model('EbayOrders', EbayOrders);
 const PurchaseModel = mongoose.model('PurchasePrice', PurchasePrice);
+const TrackingAccountsModel = mongoose.model('TrackingAccounts', TrackingAccounts);
+const TrackingNumbersModel = mongoose.model('TrackingNumbers', TrackingNumbers);
 
 module.exports.WalmartModel = WalmartModel;
 module.exports.AmazonModel = AmazonModel;
 module.exports.EbayModel = EbayModel;
 module.exports.PurchaseModel = PurchaseModel;
+module.exports.TrackingAccountsModel = TrackingAccountsModel;
+module.exports.TrackingNumbersModel = TrackingNumbersModel;

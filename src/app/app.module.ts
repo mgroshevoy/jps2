@@ -26,6 +26,8 @@ import {PstPipe} from './pipes/pst.pipe';
 import {FeePipe} from './pipes/fee.pipe';
 import {GetTimeStampPipe} from './pipes/get-time-stamp.pipe';
 import {TotalPipe} from './pipes/total.pipe';
+import { NumbersComponent } from './numbers/numbers.component';
+import {NumbersService} from "./numbers/numbers.service";
 
 // Define the routes
 const ROUTES = [
@@ -53,6 +55,10 @@ const ROUTES = [
   {
     path: 'accounting',
     component: AccountingComponent
+  },
+  {
+    path: 'numbers',
+    component: NumbersComponent
   }
 ];
 
@@ -69,7 +75,8 @@ const ROUTES = [
     FeePipe,
     TrackingComponent,
     GetTimeStampPipe,
-    TotalPipe
+    TotalPipe,
+    NumbersComponent
   ],
   imports: [
     BrowserModule,
@@ -86,6 +93,7 @@ const ROUTES = [
     AmazonService,
     WalmartService,
     AccountingService,
+    NumbersService,
     ToasterService,
     TrackingService],
   bootstrap: [AppComponent]

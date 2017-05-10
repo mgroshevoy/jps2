@@ -1,15 +1,15 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 import {Http} from '@angular/http';
 import 'rxjs/add/operator/map';
 
 @Injectable()
-export class WalmartService {
+export class NumbersService {
 
   constructor(private http: Http) {
   }
 
-  getAllOrders() {
-    return this.http.get('api/walmart')
+  getAllNumbers() {
+    return this.http.get('api/tn')
       .map(res => res.json());
   }
 }
