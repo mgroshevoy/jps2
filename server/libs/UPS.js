@@ -77,7 +77,9 @@ class UPS {
                 'InquiryNumber1': number
             }
         }, (error, response, body) => {
-            if (!body.match(/<h2>\s*Tracking\s*Detail\s*<\/h2>/)) return callback(new Error('Not found.'));
+            if (!body.match(/<h2>\s*Tracking\s*Detail\s*<\/h2>/)) {
+              return callback(new Error(number+' not found.'));
+            }
             if (body.match(/id="tt_spStatus"\s*>[\s\n\r]*Delivered[\s\n\r]*<\/a>/)) return callback(new Error('Delivered.'));
 
 

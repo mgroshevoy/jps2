@@ -98,7 +98,8 @@ const TrackingNumbers = new Schema({
   city: String,
   type: String,
   weight: Number,
-  tracking_account_id: {}
+  tracking_account_id: {},
+  used: { type: Boolean, default: false }
 });
 
 const WalmartModel = mongoose.model('WalmartOrders', WalmartOrders);

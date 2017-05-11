@@ -67,6 +67,7 @@ function updateTrackingNumbers() {
                 console.log('Type:        ' + item.category);
                 console.log('Weight:      ' + item.weight + ' g.');
                 console.log('---\n');
+                account.tracking_account = item.number;
                 TrackingNumbersModel.findOne({tracking_number: item.number}, (err, obj) => {
                   if (obj) {
                     //obj.tracking_number = item.number;
@@ -94,7 +95,6 @@ function updateTrackingNumbers() {
                   obj.save();
                 });
               }
-              account.tracking_account = item.number
             });
             account.save();
           }
