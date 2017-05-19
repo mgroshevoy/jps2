@@ -14,6 +14,18 @@ const Orders = require('../libs/ebaygetter');
 const UPS = require('../libs/UPS');
 const schedule = require('node-schedule');
 
+if (!process.env.DEV_MODE) {
+  let startAtNine = schedule.scheduleJob('00 9 * * *', function () {
+    console.info('Setting Tracking Numbers at: ' + moment().format('lll'));
+    setTrackingNumbers();
+  });
+}
+
+let updateEverySixHours = schedule.scheduleJob('00 */6 * * *', function () {
+  console.info('Updating Tracking Numbers at: ' + moment().format('lll'));
+  updateTrackingNumbers();
+});
+
 let updateEveryTwoHours = schedule.scheduleJob('00 */2 * * *', function () {
   console.info('Updating Amazon orders at: ' + moment().format('lll'));
   Orders.getAmazonOrders()
@@ -37,6 +49,38 @@ let updateEveryHour = schedule.scheduleJob('00 * * * *', function () {
       console.error(err);
     });
 });
+
+function setTrackingNumbers() {
+  Orders.getOrders(moment().subtract(3, 'days').startOf('day').add(7, 'hours'))
+    .then(result => {
+      console.log(result.length);
+      result.forEach(order => {
+        order.items.forEach(item => {
+          if (item.ShipmentTrackingDetails.length === 0 && order.order_status === 'Completed') {
+            Orders.ebayGetOrderTransactions([{OrderID: order.id}])
+              .then(transaction => {
+                if (!transaction.Orders.Transactions.ShippingDetails) {
+                  TrackingNumbersModel
+                    .where({delivery: {$gt: moment().add(2, 'd')}}, {used: false})
+                    .findOne((error, obj) => {
+                      console.log(moment().toISOString());
+                      obj.used = true;
+                      obj.save((err, obj) => {
+                        Orders.ebayCompleteSale(order.id, obj.tracking_number, moment().toISOString())
+                          .then(info => {
+                            console.log('Adding tracking number on order ' + order.id);
+                            console.log(info);
+                          })
+                      });
+                    })
+                    .sort('-delivery');
+                }
+              });
+          }
+        });
+      });
+    });
+}
 
 function updateTrackingNumbers() {
   const MAX_ERRORS = 10;
@@ -109,20 +153,26 @@ router.get('/', (req, res, next) => {
   res.send('api works');
 });
 
-router.get('/tracking', (req, res, next) => {
-  Orders.getOrders(res);
+router.get('/auto', (req, res, next) => {
 });
 
-router.get('/tn', (req,res,next) => {
+router.get('/tracking', (req, res, next) => {
+  Orders.getOrders()
+    .then(result => {
+      res.status(200).json(result);
+    });
+});
+
+router.get('/tn', (req, res, next) => {
   TrackingNumbersModel
-    .where({delivery: {$gt: moment().add(2, 'd')}})
+    .where({delivery: {$gt: moment().add(2, 'd')}}, {used: false})
     .find((error, obj) => {
       res.status(200).json(obj);
-  })
+    })
     .sort('delivery');
 });
 
-router.get('/tn/list', (req,res,next) => {
+router.get('/tn/list', (req, res, next) => {
   TrackingAccountsModel.find({}, (error, obj) => {
     res.send(obj);
   });
@@ -289,11 +339,17 @@ router.get('/accounting/:dateFrom/:dateTo', (req, res, next) => {
   else dateFrom = moment().subtract(30, 'days').format('YYYY-MM-DD');
   if (moment(req.params.dateTo).isValid()) dateTo = req.params.dateTo;
   else dateTo = moment().format('YYYY-MM-DD');
-  Orders.getOrders(res, dateFrom, dateTo);
+  Orders.getOrders(dateFrom, dateTo)
+    .then(result => {
+      res.status(200).json(result);
+    });
 });
 
 router.get('/accounting', (req, res, next) => {
-  Orders.getOrders(res);
+  Orders.getOrders()
+    .then(result => {
+      res.status(200).json(result);
+    });
 });
 
 router.post('/accounting', (req, res, next) => {

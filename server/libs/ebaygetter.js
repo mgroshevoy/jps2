@@ -181,6 +181,82 @@ class Orders {
     });
   }
 
+  ebayCompleteSale(orderId, trackingNumber, shippedTime) {
+    return new Promise((resolve, reject) => {
+      ebay.xmlRequest({
+        serviceName: 'Trading',
+        opType: 'CompleteSale',
+
+        // app/environment
+        devId: process.env.EBAY_DEVID,
+        certId: process.env.EBAY_CERTID,
+        appId: process.env.EBAY_APPID,
+        sandbox: false,
+
+        // per user
+        authToken: process.env.EBAY_AUTHTOKEN,
+
+        params: {
+          WarningLevel: 'High',
+          OrderID: orderId,
+          Paid: true,
+          Shipped: true,
+          Shipment: {
+            ShipmentTrackingDetails: {
+              ShipmentTrackingNumber: trackingNumber,
+              ShippingCarrierUsed: 'UPS',
+            }
+          },
+          ShippedTime: shippedTime,
+        }
+      }, function (error, results) {
+        if (error) {
+          console.error(error);
+          reject(error);
+        }
+        resolve(results);
+      });
+    });
+  }
+
+
+  ebayGetOrderTransactions(orderIdArray) {
+    return new Promise((resolve, reject) => {
+      ebay.xmlRequest({
+        serviceName: 'Trading',
+        opType: 'GetOrderTransactions',
+
+        // app/environment
+        devId: process.env.EBAY_DEVID,
+        certId: process.env.EBAY_CERTID,
+        appId: process.env.EBAY_APPID,
+        sandbox: false,
+
+        // per user
+        authToken: process.env.EBAY_AUTHTOKEN,
+
+        params: {
+          OrderIDArray: orderIdArray,
+          DetailLevel: 'ReturnAll',
+          IncludeFinalValueFee: true,
+          // OrderStatus: 'All',
+          // CreateTimeFrom: moment().subtract(90, 'days').toISOString(),
+          // CreateTimeTo: moment().toISOString(),
+          // OrderRole: 'Seller',
+          // Pagination: {
+          //   EntriesPerPage: 100,
+          //   PageNumber: intPage
+          // }
+        }
+      }, function (error, results) {
+        if (error) {
+          console.error(error);
+          reject(error);
+        }
+        resolve(results);
+      });
+    });
+  }
 
   /**
    * Get orders from Ebay API
@@ -458,85 +534,88 @@ class Orders {
    * @param dateFrom
    * @param dateTo
    */
-  getOrders(res,
+  getOrders(
             dateFrom = moment().subtract(30, 'days').startOf('day').add(7, 'hours'),
             dateTo = moment().startOf('day').add(7, 'hours')) {
-    EbayModel
-      .where('created_time').gte(dateFrom).lte(dateTo)
-      .sort('-created_time')
-      .find()
-      .then(result => {
-        let i, promises = [];
-        for (i = 0; i < result.length; i++) {
-          promises.push(AmazonModel
-            .findOne({
-              shipping_name: {
-                '$regex': result[i].address.name,
-                '$options': 'i'
-              },
-              date: {
-                $gte: moment(result[i].created_time).startOf('day').subtract(3, 'days').toISOString(),
-                $lt: moment(result[i].created_time).startOf('day').add(6, 'days').toISOString()
-              },
-              shipping_zip: {
-                '$regex': result[i].address.postal_code.substr(0, 5),
-                '$options': 'i'
-              },
-              total: {
-                $gt: 0
-              }
-            }));
-        }
-        Promise.all(promises).then(amazonOrders => {
+    return new Promise ((resolve,reject) => {
+      EbayModel
+        .where('created_time').gte(dateFrom).lte(dateTo)
+        .sort('-created_time')
+        .find()
+        .then(result => {
+          let i, promises = [];
           for (i = 0; i < result.length; i++) {
-            if (result[i].address.name) {
-              result[i]._doc.amazon = amazonOrders[i] || {total: 0};
-            } else {
-              result[i]._doc.amazon = {total: 0};
-            }
-          }
-          promises = [];
-          for (i = 0; i < result.length; i++) {
-            promises.push(WalmartModel
+            promises.push(AmazonModel
               .findOne({
-                address: {
-                  '$regex': result[i].address.name, // + '.*' + result[i].address.postal_code.substr(0, 5),
+                shipping_name: {
+                  '$regex': result[i].address.name,
                   '$options': 'i'
                 },
                 date: {
                   $gte: moment(result[i].created_time).startOf('day').subtract(3, 'days').toISOString(),
                   $lt: moment(result[i].created_time).startOf('day').add(6, 'days').toISOString()
                 },
+                shipping_zip: {
+                  '$regex': result[i].address.postal_code.substr(0, 5),
+                  '$options': 'i'
+                },
                 total: {
                   $gt: 0
                 }
               }));
           }
-          Promise.all(promises).then(walmartOrders => {
+          Promise.all(promises).then(amazonOrders => {
             for (i = 0; i < result.length; i++) {
               if (result[i].address.name) {
-                result[i]._doc.walmart = walmartOrders[i] || {total: 0};
+                result[i]._doc.amazon = amazonOrders[i] || {total: 0};
               } else {
-                result[i]._doc.walmart = {total: 0};
+                result[i]._doc.amazon = {total: 0};
               }
             }
             promises = [];
             for (i = 0; i < result.length; i++) {
-              promises.push(PurchaseModel.findOne({id: result[i].id}));
+              promises.push(WalmartModel
+                .findOne({
+                  address: {
+                    '$regex': result[i].address.name, // + '.*' + result[i].address.postal_code.substr(0, 5),
+                    '$options': 'i'
+                  },
+                  date: {
+                    $gte: moment(result[i].created_time).startOf('day').subtract(3, 'days').toISOString(),
+                    $lt: moment(result[i].created_time).startOf('day').add(6, 'days').toISOString()
+                  },
+                  total: {
+                    $gt: 0
+                  }
+                }));
             }
-            Promise.all(promises).then(purchaseOrders => {
+            Promise.all(promises).then(walmartOrders => {
               for (i = 0; i < result.length; i++) {
-                if (purchaseOrders[i]) {
-                  result[i]._doc.amazon.total = purchaseOrders[i].amazonprice;
-                  result[i]._doc.walmart.total = purchaseOrders[i].walmartprice;
+                if (result[i].address.name) {
+                  result[i]._doc.walmart = walmartOrders[i] || {total: 0};
+                } else {
+                  result[i]._doc.walmart = {total: 0};
                 }
               }
-              res.status(200).json(result);
+              promises = [];
+              for (i = 0; i < result.length; i++) {
+                promises.push(PurchaseModel.findOne({id: result[i].id}));
+              }
+              Promise.all(promises).then(purchaseOrders => {
+                for (i = 0; i < result.length; i++) {
+                  if (purchaseOrders[i]) {
+                    result[i]._doc.amazon.total = purchaseOrders[i].amazonprice;
+                    result[i]._doc.walmart.total = purchaseOrders[i].walmartprice;
+                  }
+                }
+                console.log(result);
+                resolve(result);
+              });
             });
           });
-        });
-      }).catch(err => {
-      if (err) res.status(500).send(error);
+        }).catch(err => {
+        if (err) reject(error);
+      });
     });
   }
 }
