@@ -246,8 +246,7 @@ class UPS {
             // if(moment(new Date(dateDelivery)) > moment(new Date(date))) {
             list.push(item);
             // }
-            if ((moment(new Date(dateBilled)).isSame(moment().subtract(1, 'day'), 'day') ||
-              moment(new Date(dateBilled)).isSame(moment(), 'day')) && i >= count) {
+            if (moment(new Date(dateBilled)).isSame(moment(), 'day') && i >= count) {
               console.log('Time to stop');
               isRequest = false;
             }

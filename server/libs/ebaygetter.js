@@ -181,7 +181,7 @@ class Orders {
     });
   }
 
-  ebayCompleteSale(orderId, trackingNumber, shippedTime) {
+  ebayCompleteSale(orderId, trackingNumber, trackingCarrier = 'UPS') {
     return new Promise((resolve, reject) => {
       ebay.xmlRequest({
         serviceName: 'Trading',
@@ -199,15 +199,15 @@ class Orders {
         params: {
           WarningLevel: 'High',
           OrderID: orderId,
-          Paid: true,
-          Shipped: true,
+          // Paid: true,
+          // Shipped: true,
           Shipment: {
             ShipmentTrackingDetails: {
               ShipmentTrackingNumber: trackingNumber,
-              ShippingCarrierUsed: 'UPS',
+              ShippingCarrierUsed: trackingCarrier,
             }
           },
-          ShippedTime: shippedTime,
+          // ShippedTime: shippedTime,
         }
       }, function (error, results) {
         if (error) {
@@ -539,7 +539,7 @@ class Orders {
             dateTo = moment().startOf('day').add(7, 'hours')) {
     return new Promise ((resolve,reject) => {
       EbayModel
-        .where('created_time').gte(dateFrom).lte(dateTo)
+        .where('created_time').gte(moment(dateFrom).startOf('day')).lte(moment(dateTo).endOf('day'))
         .sort('-created_time')
         .find()
         .then(result => {
@@ -608,7 +608,6 @@ class Orders {
                     result[i]._doc.walmart.total = purchaseOrders[i].walmartprice;
                   }
                 }
-                console.log(result);
                 resolve(result);
               });
             });

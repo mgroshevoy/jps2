@@ -1,4 +1,5 @@
 require('dotenv').config();
+const vo = require('vo');
 const fs = require('fs');
 const parse = require('csv-parse');
 const express = require('express');
@@ -13,6 +14,7 @@ const TrackingNumbersModel = require('../libs/mongoose').TrackingNumbersModel;
 const Orders = require('../libs/ebaygetter');
 const UPS = require('../libs/UPS');
 const schedule = require('node-schedule');
+const _ = require('lodash');
 
 if (!process.env.DEV_MODE) {
   let startAtNine = schedule.scheduleJob('00 9 * * *', function () {
@@ -50,40 +52,63 @@ let updateEveryHour = schedule.scheduleJob('00 * * * *', function () {
     });
 });
 
-function setTrackingNumbers() {
-  Orders.getOrders(moment().subtract(3, 'days').startOf('day').add(7, 'hours'))
-    .then(result => {
-      console.log(result.length);
-      result.forEach(order => {
-        order.items.forEach(item => {
-          if (item.ShipmentTrackingDetails.length === 0 && order.order_status === 'Completed') {
-            Orders.ebayGetOrderTransactions([{OrderID: order.id}])
-              .then(transaction => {
-                if (!transaction.Orders.Transactions.ShippingDetails) {
-                  TrackingNumbersModel
-                    .where({delivery: {$gt: moment().add(2, 'd')}}, {used: false})
-                    .findOne((error, obj) => {
-                      console.log(moment().toISOString());
-                      obj.used = true;
-                      obj.save((err, obj) => {
-                        Orders.ebayCompleteSale(order.id, obj.tracking_number, moment().toISOString())
-                          .then(info => {
-                            console.log('Adding tracking number on order ' + order.id);
-                            console.log(info);
-                          })
-                      });
-                    })
-                    .sort('-delivery');
-                }
-              });
+function setTrackingNumbers(res) {
+  vo(function*() {
+    let threeDaysOrders = yield Orders.getOrders(moment().subtract(3, 'days').startOf('day').add(7, 'hours'));
+    //let checkedOrders = [];
+    //let trackingNumber;
+    console.log(threeDaysOrders.length);
+
+    for (order of threeDaysOrders) {
+      for (item of order.items) {
+        if (item.ShipmentTrackingDetails.length === 0 && order.order_status === 'Completed') {
+          if(order._doc.walmart.tracking_number) {
+            console.log(order._doc.walmart.tracking_number.match(/(.*)\s#/)[1]);
+            console.log(order._doc.walmart.tracking_number.match(/#(.*)/)[1]);
+            yield Orders.ebayCompleteSale(
+              order.id,
+              order._doc.walmart.tracking_number.match(/#(.*)/)[1],
+              order._doc.walmart.tracking_number.match(/(.*)\s#/)[1]
+            );
           }
-        });
-      });
-    });
+          if(order._doc.amazon.tracking_number && !(order._doc.amazon.tracking_number.indexOf('AMZN_US')+1)) {
+            yield Orders.ebayCompleteSale(
+              order.id,
+              order._doc.amazon.tracking_number.match(/\((.*)\)/)[1],
+              order._doc.amazon.tracking_number.match(/(.*)\(/)[1]
+            );
+            console.log(order._doc.amazon.tracking_number.match(/(.*)\(/)[1]);
+            console.log(order._doc.amazon.tracking_number.match(/\((.*)\)/)[1]);
+          }
+        }
+      }
+    }
+    res.send(threeDaysOrders);
+    // for (order of threeDaysOrders) {
+    //   for (item of order.items) {
+    //     if (item.ShipmentTrackingDetails.length === 0 && order.order_status === 'Completed') {
+    //       checkedOrders.push(yield Orders.ebayGetOrderTransactions([{OrderID: order.id}]));
+    //     }
+    //   }
+    // }
+    //res.send(checkedOrders);
+    //for (order of checkedOrders) {
+    //   trackingNumber = yield TrackingNumbersModel
+    //     .where({delivery: {$gt: moment().add(2, 'd')}}, {used: false})
+    //     .findOne((error, obj) => {
+    //       console.log(obj);
+    //     })
+    //     .sort('-delivery');
+    //  yield Orders.ebayCompleteSale(order.id, trackingNumber.tracking_number);
+    //}
+
+  })((error, result) => {
+    if (error) console.error(error);
+  });
 }
 
 function updateTrackingNumbers() {
-  const MAX_ERRORS = 10;
+  const MAX_ERRORS = 100;
   const MAX_COUNT = 500; // How many invoice numbers to catch.
   //const NUMBER = '1ZA3720W0313828028';
   const DATE = moment().add(2, 'days');
@@ -101,6 +126,7 @@ function updateTrackingNumbers() {
           (error, list) => {
             console.log('Total numbers found: ' + list.length + '\n');
             list.forEach((item) => {
+              account.tracking_account = item.number;
               if (new Date(item.dateDelivery) > moment().add(2, 'd')) {
                 console.log(item.number);
                 console.log('Billed on:   ' + item.dateBilled);
@@ -111,7 +137,6 @@ function updateTrackingNumbers() {
                 console.log('Type:        ' + item.category);
                 console.log('Weight:      ' + item.weight + ' g.');
                 console.log('---\n');
-                account.tracking_account = item.number;
                 TrackingNumbersModel.findOne({tracking_number: item.number}, (err, obj) => {
                   if (obj) {
                     //obj.tracking_number = item.number;
@@ -153,7 +178,9 @@ router.get('/', (req, res, next) => {
   res.send('api works');
 });
 
+
 router.get('/auto', (req, res, next) => {
+  setTrackingNumbers(res);
 });
 
 router.get('/tracking', (req, res, next) => {
@@ -180,6 +207,7 @@ router.get('/tn/list', (req, res, next) => {
 
 router.get('/tn/update', (req, res, next) => {
   updateTrackingNumbers();
+  res.send('Update started!');
 });
 
 router.get('/tn/add/:trackingNumber', (req, res, next) => {
@@ -215,7 +243,7 @@ router.get('/orders/:dateFrom/:dateTo', (req, res, next) => {
   if (moment(req.params.dateTo).isValid()) dateTo = req.params.dateTo;
   else dateTo = moment().format('YYYY-MM-DD');
   EbayModel
-    .where('created_time').gte(dateFrom).lte(dateTo)
+    .where('created_time').gte(moment(dateFrom).startOf('day')).lte(moment(dateTo).endOf('day'))
     .find((err, orders) => {
       if (err) res.status(500).send(error);
       res.status(200).json(orders);
