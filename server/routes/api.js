@@ -55,8 +55,7 @@ let updateEveryHour = schedule.scheduleJob('00 * * * *', function () {
 function setTrackingNumbers(res) {
   vo(function*() {
     let threeDaysOrders = yield Orders.getOrders(moment().subtract(3, 'days').startOf('day').add(7, 'hours'));
-    //let checkedOrders = [];
-    //let trackingNumber;
+    let wmrt, amzn;
     console.log(threeDaysOrders.length);
 
     for (order of threeDaysOrders) {
@@ -65,20 +64,23 @@ function setTrackingNumbers(res) {
           if(order._doc.walmart.tracking_number) {
             console.log(order._doc.walmart.tracking_number.match(/(.*)\s#/)[1]);
             console.log(order._doc.walmart.tracking_number.match(/#(.*)/)[1]);
-            yield Orders.ebayCompleteSale(
+            wmrt = yield Orders.ebayCompleteSale(
               order.id,
               order._doc.walmart.tracking_number.match(/#(.*)/)[1],
               order._doc.walmart.tracking_number.match(/(.*)\s#/)[1]
             );
-          }
-          if(order._doc.amazon.tracking_number && !(order._doc.amazon.tracking_number.indexOf('AMZN_US')+1)) {
-            yield Orders.ebayCompleteSale(
+            console.log(wmrt);
+          } else if(order._doc.amazon.tracking_number && !(order._doc.amazon.tracking_number.indexOf('AMZN_US')+1)) {
+            console.log(order._doc.amazon.tracking_number.match(/(.*)\(/)[1]);
+            console.log(order._doc.amazon.tracking_number.match(/\((.*)\)/)[1]);
+            amzn = yield Orders.ebayCompleteSale(
               order.id,
               order._doc.amazon.tracking_number.match(/\((.*)\)/)[1],
               order._doc.amazon.tracking_number.match(/(.*)\(/)[1]
             );
-            console.log(order._doc.amazon.tracking_number.match(/(.*)\(/)[1]);
-            console.log(order._doc.amazon.tracking_number.match(/\((.*)\)/)[1]);
+            console.log(amzn);
+          } else {
+
           }
         }
       }
