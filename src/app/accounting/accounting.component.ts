@@ -3,6 +3,8 @@ import * as moment from 'moment';
 import {AccountingService} from './accounting.service';
 import {IMyOptions, IMyDateRangeModel} from 'mydaterangepicker';
 import {FeePipe} from '../pipes/fee.pipe';
+import {EbayfeePipe} from "../pipes/ebayfee.pipe";
+import {PaypalfeePipe} from "../pipes/paypalfee.pipe";
 
 @Component({
   selector: 'app-accounting',
@@ -49,11 +51,15 @@ export class AccountingComponent implements OnInit, OnChanges {
     this.orders.sumFee = 0;
     this.orders.sumAmazon = 0;
     this.orders.sumWalmart = 0;
+    this.orders.sumEbayFee = 0;
+    this.orders.sumPaypalFee = 0;
     this.orders.num = orders.length;
     for (const order of orders) {
       if (order.paid_time) {
         this.orders.totalSum += order.total;
       }
+      this.orders.sumEbayFee += +new EbayfeePipe().transform(order);
+      this.orders.sumPaypalFee += +new PaypalfeePipe().transform(order);
       this.orders.sumFee += +new FeePipe().transform(order);
       this.orders.sumAmazon += order.amazon.total;
       this.orders.sumWalmart += order.walmart.total;

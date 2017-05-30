@@ -16,7 +16,19 @@
 <table class="table table-bordered">
   <tr>
     <td>Number of orders: {{orders.num}}</td>
-    <td>Total fee: {{orders.sumFee | number:'.2' }}</td>
+    <td>
+    <div class="row">
+      <div class="col">
+        Total fee: {{orders.sumFee | number:'.2' }}
+      </div>
+      <div class="col">
+        EBAY total fee: {{orders.sumEbayFee | number:'.2' }}
+      </div>
+      <div class="col">
+        PayPal total fee: {{orders.sumPaypalFee | number:'.2' }}
+      </div>
+    </div>
+    </td>
     <td>Total sum: {{orders.totalSum | number:'.2' }}</td>
   </tr>
   <tr>

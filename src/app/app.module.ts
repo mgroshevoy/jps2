@@ -28,6 +28,8 @@ import {GetTimeStampPipe} from './pipes/get-time-stamp.pipe';
 import {TotalPipe} from './pipes/total.pipe';
 import { NumbersComponent } from './numbers/numbers.component';
 import {NumbersService} from "./numbers/numbers.service";
+import { PaypalfeePipe } from './pipes/paypalfee.pipe';
+import { EbayfeePipe } from './pipes/ebayfee.pipe';
 
 // Define the routes
 const ROUTES = [
@@ -76,7 +78,9 @@ const ROUTES = [
     TrackingComponent,
     GetTimeStampPipe,
     TotalPipe,
-    NumbersComponent
+    NumbersComponent,
+    PaypalfeePipe,
+    EbayfeePipe
   ],
   imports: [
     BrowserModule,
