@@ -110,7 +110,7 @@ class Orders {
             }
             obj.save(function (err) {
               if (!err) {
-                console.info("Order saved!");
+                console.info(new Date(), 'Order saved!');
               } else {
                 console.error('Internal error: %s', err.message);
               }
@@ -376,7 +376,6 @@ class Orders {
               Address: order.ShippingAddress,
               SellingManagerNumber: order.ShippingDetails.SellingManagerSalesRecordNumber,
             });
-            console.log(order.Transactions);
             _.forEach(order.Transactions, function (transaction) {
               res[res.length - 1].Items.push({
                 ItemID: transaction.Item.ItemID,
@@ -436,7 +435,7 @@ class Orders {
         return {prom: Promise.all(promises), orders: results};
       }).then((results) => {
         let promises = [];
-        console.info('Saving...');
+        console.info(new Date(), 'Saving...');
         for (let order of results.orders) promises.push(this.saveOrder(order));
         return Promise.all(promises);
       }).then(() => {
@@ -517,7 +516,7 @@ class Orders {
         }
         obj.save(function (err) {
           if (!err) {
-            console.info("Order saved!");
+            console.info(new Date(), "Order saved!");
             resolve(obj);
           } else {
             console.error('Internal error: %s', err.message);

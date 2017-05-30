@@ -18,36 +18,36 @@ const _ = require('lodash');
 
 if (!process.env.DEV_MODE) {
   let startAtNine = schedule.scheduleJob('00 9 * * *', function () {
-    console.info('Setting Tracking Numbers at: ' + moment().format('lll'));
+    console.info(new Date(), 'Setting Tracking Numbers at: ' + moment().format('lll'));
     setTrackingNumbers();
   });
 }
 
 let updateEverySixHours = schedule.scheduleJob('00 */6 * * *', function () {
-  console.info('Updating Tracking Numbers at: ' + moment().format('lll'));
+  console.info(new Date(), 'Updating Tracking Numbers at: ' + moment().format('lll'));
   updateTrackingNumbers();
 });
 
 let updateEveryTwoHours = schedule.scheduleJob('00 */2 * * *', function () {
-  console.info('Updating Amazon orders at: ' + moment().format('lll'));
+  console.info(new Date(), 'Updating Amazon orders at: ' + moment().format('lll'));
   Orders.getAmazonOrders()
     .then(() => {
-      console.info('Updated Amazon orders at: ' + moment().format('lll'));
+      console.info(new Date(), 'Updated Amazon orders at: ' + moment().format('lll'));
     })
     .catch(() => {
-      console.info('Amazon orders update is failed!');
+      console.info(new Date(), 'Amazon orders update is failed!');
     });
   updateTrackingNumbers();
 });
 
 let updateEveryHour = schedule.scheduleJob('00 * * * *', function () {
-  console.info('Updating eBay orders at: ' + moment().format('lll'));
+  console.info(new Date(), 'Updating eBay orders at: ' + moment().format('lll'));
   Orders.getOrdersFromEbay()
     .then(() => {
-      console.info('Updated eBay orders at: ' + moment().format('lll'));
+      console.info(new Date(), 'Updated eBay orders at: ' + moment().format('lll'));
     })
     .catch((err) => {
-      console.info('Ebay orders update is failed!');
+      console.info(new Date(), 'Ebay orders update is failed!');
       console.error(err);
     });
 });
@@ -56,7 +56,6 @@ function setTrackingNumbers(res) {
   vo(function*() {
     let threeDaysOrders = yield Orders.getOrders(moment().subtract(3, 'days').startOf('day').add(7, 'hours'));
     let wmrt, amzn;
-    console.log(threeDaysOrders.length);
 
     for (order of threeDaysOrders) {
       for (item of order.items) {
@@ -238,7 +237,6 @@ router.get('/tn/del/:trackingNumber', (req, res, next) => {
 });
 
 router.get('/orders/:dateFrom/:dateTo', (req, res, next) => {
-  console.log(req.params);
   let dateFrom, dateTo;
   if (moment(req.params.dateFrom).isValid()) dateFrom = req.params.dateFrom;
   else dateFrom = moment().subtract(30, 'days').format('YYYY-MM-DD');
@@ -254,9 +252,9 @@ router.get('/orders/:dateFrom/:dateTo', (req, res, next) => {
 });
 
 router.get('/orders/update', (req, res, next) => {
-  console.info('Updating...');
+  console.info(new Date(), 'Updating Ebay Orders...');
   Orders.getOrdersFromEbay(res).then(() => {
-    console.info('Updated');
+    console.info(new Date(), 'Ebay Orders Updated');
   });
 });
 
@@ -274,7 +272,6 @@ router.get('/orders', (req, res, next) => {
 });
 
 router.post('/amazon', (req, res, next) => {
-  console.log(req.files[0].destination + req.files[0].filename);
   Orders.loadCSV(req.files[0].filename)
     .then((orders) => {
       return Orders.saveAmazonOrders(orders);
@@ -308,7 +305,6 @@ router.get('/walmart', (req, res, next) => {
 });
 
 router.post('/walmart', (req, res, next) => {
-  console.log(req.files[0].destination + req.files[0].filename);
   let parser = parse({
     delimiter: ',',
     columns: true
@@ -318,7 +314,6 @@ router.post('/walmart', (req, res, next) => {
       console.error(err);
       return;
     }
-    console.log(data);
     for (let order of data) {
       if (order['Order #'] && order['Date'] && order['Name+Address']) {
         promises.push(
@@ -340,7 +335,7 @@ router.post('/walmart', (req, res, next) => {
             }
             obj.save(function (err) {
               if (!err) {
-                console.info("Order saved!");
+                console.info(new Date(), "Order saved!");
               } else {
                 console.error('Internal error: %s', err.message);
               }
@@ -363,7 +358,6 @@ router.post('/walmart', (req, res, next) => {
 });
 
 router.get('/accounting/:dateFrom/:dateTo', (req, res, next) => {
-  console.log(req.params);
   let dateFrom, dateTo;
   if (moment(req.params.dateFrom).isValid()) dateFrom = req.params.dateFrom;
   else dateFrom = moment().subtract(30, 'days').format('YYYY-MM-DD');
@@ -408,7 +402,7 @@ router.post('/accounting', (req, res, next) => {
           }
           result.save(function (err, result) {
             if (!err) {
-              console.info('Purchase saved!');
+              console.info(new Date(), 'Purchase saved!');
               res.send(result)
             } else {
               console.error('Internal error: %s', err.message);
@@ -416,13 +410,12 @@ router.post('/accounting', (req, res, next) => {
             }
           });
         } else {
-          console.log(order);
           if (result) {
             result.remove((err) => {
               if (err) {
                 console.error('Internal error: %s', err.message);
               } else {
-                console.info('Purchase deleted!');
+                console.info(new Date(), 'Purchase deleted!');
               }
             });
           }
