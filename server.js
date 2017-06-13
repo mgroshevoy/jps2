@@ -47,7 +47,7 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 // Set our api routes
-app.use('/api', jwt({ secret: process.env.JWT_SECRET}).unless({path: ['/api/login']}), function (req,res,next) {
+app.use('/api', jwt({ secret: process.env.JWT_SECRET}).unless({path: ['/api/login', '/api/register']}), function (req,res,next) {
   //console.log(req.user);
   next();
 });
