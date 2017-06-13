@@ -8,7 +8,7 @@ import {AuthService} from '../login/auth.service';
 })
 export class NavigationComponent {
 
-  constructor(private auth: AuthService) {}
+  constructor(public auth: AuthService) {}
 
   loggedIn () {
     return this.auth.loggedIn();

@@ -16,7 +16,7 @@ export class LoginComponent {
 
   credentials: Credentials;
 
-  constructor(private auth: AuthService) {}
+  constructor(public auth: AuthService) {}
 
   onLogin(credentials) {
     this.auth.login(credentials);
