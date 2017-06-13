@@ -1,0 +1,28 @@
+<nav class="navbar navbar-toggleable-md navbar-light sticky-top bg-faded" style="background-color: #e3f2fd;" *ngIf="auth.loggedIn()">
+  <button class="navbar-toggler navbar-toggler-right" type="button" data-target="#navbarNav" data-toggle="collapse">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <a class="navbar-brand" href="/">Accounting App</a>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav mr-auto mt-2 mt-md-0">
+      <li class="nav-item">
+        <a class="nav-link" href="/accounting">Accounting</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/orders">Ebay orders</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/amazon">Amazon orders</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/walmart">Walmart orders</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/numbers">Tracking numbers</a>
+      </li>
+    </ul>
+    <button class="btn btn-default active navbar-text" role="button" (click)="logout()">
+      Logout
+    </button>
+  </div>
+</nav>

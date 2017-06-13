@@ -1,12 +1,12 @@
 import {Injectable} from '@angular/core';
 import {Http} from '@angular/http';
 import 'rxjs/add/operator/map';
-import * as moment from 'moment';
+import { AuthHttp} from 'angular2-jwt';
 
 @Injectable()
 export class AccountingService {
 
-  constructor(private http: Http) {
+  constructor(private http: Http, private authHttp: AuthHttp) {
   }
 
   getAllOrders(myRange: any) {
@@ -16,12 +16,12 @@ export class AccountingService {
     let end = myRange.endDate.year + '-'
       + (myRange.endDate.month < 10 ? '0' + myRange.endDate.month : myRange.endDate.month)
       + '-' + (myRange.endDate.day < 10 ? '0' + myRange.endDate.day : myRange.endDate.day);
-    return this.http.get('api/accounting/' + begin + '/' + end)
+    return this.authHttp.get('api/accounting/' + begin + '/' + end)
       .map(res => res.json());
   }
 
   setPurchasePrice(order) {
-    return this.http.post('api/accounting', order)
+    return this.authHttp.post('api/accounting', order)
       .map(res => res.json());
   }
 }

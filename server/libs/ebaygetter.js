@@ -381,7 +381,7 @@ class Orders {
                 ItemID: transaction.Item.ItemID,
                 Title: transaction.Item.Title,
                 SKU: transaction.Item.SKU,
-                FinalValueFee: transaction.FinalValueFee._,
+                FinalValueFee: transaction.FinalValueFee?transaction.FinalValueFee._:'',
                 ShipmentTrackingDetails: transaction.ShippingDetails.ShipmentTrackingDetails ? transaction.ShippingDetails.ShipmentTrackingDetails : [],
                 QuantityPurchased: transaction.QuantityPurchased,
               });

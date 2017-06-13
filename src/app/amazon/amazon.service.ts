@@ -1,15 +1,16 @@
 import {Injectable} from '@angular/core';
 import {Http} from '@angular/http';
 import 'rxjs/add/operator/map';
+import {AuthHttp} from 'angular2-jwt';
 
 @Injectable()
 export class AmazonService {
 
-  constructor(private http: Http) {
+  constructor(private http: Http, private authHttp: AuthHttp) {
   }
 
   getAllOrders() {
-    return this.http.get('api/amazon')
+    return this.authHttp.get('api/amazon')
       .map(res => res.json());
   }
 }

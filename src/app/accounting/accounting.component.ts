@@ -3,8 +3,8 @@ import * as moment from 'moment';
 import {AccountingService} from './accounting.service';
 import {IMyOptions, IMyDateRangeModel} from 'mydaterangepicker';
 import {FeePipe} from '../pipes/fee.pipe';
-import {EbayfeePipe} from "../pipes/ebayfee.pipe";
-import {PaypalfeePipe} from "../pipes/paypalfee.pipe";
+import {EbayfeePipe} from '../pipes/ebayfee.pipe';
+import {PaypalfeePipe} from '../pipes/paypalfee.pipe';
 
 @Component({
   selector: 'app-accounting',

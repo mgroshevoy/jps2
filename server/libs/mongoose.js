@@ -2,8 +2,7 @@ const mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;
 
-mongoose.connect('mongodb://localhost/justpicksales');
-const db = mongoose.connection;
+const db = mongoose.createConnection('mongodb://localhost/justpicksales');
 
 db.on('error', function (err) {
   console.error('DB connection error:', err.message);
@@ -102,12 +101,12 @@ const TrackingNumbers = new Schema({
   used: { type: Boolean, default: false }
 });
 
-const WalmartModel = mongoose.model('WalmartOrders', WalmartOrders);
-const AmazonModel = mongoose.model('AmazonOrders', AmazonOrders);
-const EbayModel = mongoose.model('EbayOrders', EbayOrders);
-const PurchaseModel = mongoose.model('PurchasePrice', PurchasePrice);
-const TrackingAccountsModel = mongoose.model('TrackingAccounts', TrackingAccounts);
-const TrackingNumbersModel = mongoose.model('TrackingNumbers', TrackingNumbers);
+const WalmartModel = db.model('WalmartOrders', WalmartOrders);
+const AmazonModel = db.model('AmazonOrders', AmazonOrders);
+const EbayModel = db.model('EbayOrders', EbayOrders);
+const PurchaseModel = db.model('PurchasePrice', PurchasePrice);
+const TrackingAccountsModel = db.model('TrackingAccounts', TrackingAccounts);
+const TrackingNumbersModel = db.model('TrackingNumbers', TrackingNumbers);
 
 module.exports.WalmartModel = WalmartModel;
 module.exports.AmazonModel = AmazonModel;

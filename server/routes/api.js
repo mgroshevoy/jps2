@@ -5,6 +5,8 @@ const parse = require('csv-parse');
 const express = require('express');
 const router = express.Router();
 const moment = require('moment');
+const passport = require('passport');
+const User = require('../models/user');
 const EbayModel = require('../libs/mongoose').EbayModel;
 const AmazonModel = require('../libs/mongoose').AmazonModel;
 const WalmartModel = require('../libs/mongoose').WalmartModel;
@@ -15,6 +17,7 @@ const Orders = require('../libs/ebaygetter');
 const UPS = require('../libs/UPS');
 const schedule = require('node-schedule');
 const _ = require('lodash');
+const jwt = require('jwt-simple');
 
 if (!process.env.DEV_MODE) {
   let startAtNine = schedule.scheduleJob('00 9 * * *', function () {
@@ -443,6 +446,65 @@ router.post('/accounting', (req, res, next) => {
         }
       });
   }
+});
+
+// User management
+router.post('/register', function(req, res) {
+  User.register(new User({ username: req.body.username }),
+    req.body.password, function(err, account) {
+      if (err) {
+        return res.status(500).json({
+          err: err
+        });
+      }
+      passport.authenticate('local')(req, res, function () {
+        return res.status(200).json({
+          status: 'Registration successful!'
+        });
+      });
+    });
+});
+
+router.post('/login', function(req, res, next) {
+  passport.authenticate('local', function(err, user, info) {
+    if (err) {
+      return next(err);
+    }
+    if (!user) {
+      return res.status(401).json({
+        err: info
+      });
+    }
+    req.logIn(user, function(err) {
+      if (err) {
+        return res.status(500).json({
+          err: 'Could not log in user'
+        });
+      }
+      user['iat'] = Math.round(Date.now() / 1000);
+      user['exp'] = Math.round(Date.now() / 1000 + 5 * 60 * 60);
+      console.log(user);
+      const token = jwt.encode({
+          user: user.username,
+          iat: Math.round(Date.now() / 1000),
+          exp: Math.round(Date.now() / 1000 + 5 * 60 * 60)
+        }, process.env.JWT_SECRET);
+      console.log(token);
+      console.log(jwt.decode(token, process.env.JWT_SECRET));
+      res.status(200).json({
+        success: true,
+        message: 'Login successful!',
+        token: token
+      });
+    });
+  })(req, res, next);
+});
+
+router.get('/logout', function(req, res) {
+  req.logout();
+  res.status(200).json({
+    status: 'Bye!'
+  });
 });
 
 module.exports = router;

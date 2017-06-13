@@ -1,7 +1,7 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {HttpModule} from '@angular/http';
+import {Http, HttpModule, RequestOptions} from '@angular/http';
 import {RouterModule} from '@angular/router';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MyDatePickerModule} from 'mydatepicker';
@@ -26,10 +26,19 @@ import {PstPipe} from './pipes/pst.pipe';
 import {FeePipe} from './pipes/fee.pipe';
 import {GetTimeStampPipe} from './pipes/get-time-stamp.pipe';
 import {TotalPipe} from './pipes/total.pipe';
-import { NumbersComponent } from './numbers/numbers.component';
-import {NumbersService} from "./numbers/numbers.service";
-import { PaypalfeePipe } from './pipes/paypalfee.pipe';
-import { EbayfeePipe } from './pipes/ebayfee.pipe';
+import {NumbersComponent} from './numbers/numbers.component';
+import {NumbersService} from './numbers/numbers.service';
+import {PaypalfeePipe} from './pipes/paypalfee.pipe';
+import {EbayfeePipe} from './pipes/ebayfee.pipe';
+import {LoginComponent} from './login/login.component';
+import { NavigationComponent } from './navigation/navigation.component';
+import {AuthGuard} from './auth.guard';
+import {AuthService} from './login/auth.service';
+import { AuthHttp, AuthConfig } from 'angular2-jwt';
+
+export function authHttpServiceFactory(http: Http, options: RequestOptions) {
+  return new AuthHttp(new AuthConfig(), http, options);
+}
 
 // Define the routes
 const ROUTES = [
@@ -39,28 +48,38 @@ const ROUTES = [
   //   pathMatch: 'full'
   // },
   {
+    path: 'login',
+    component: LoginComponent
+  },
+  {
     path: '',
-    component: TrackingComponent
+    component: TrackingComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'amazon',
-    component: AmazonComponent
+    component: AmazonComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'walmart',
-    component: WalmartComponent
+    component: WalmartComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'orders',
-    component: OrdersComponent
+    component: OrdersComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'accounting',
-    component: AccountingComponent
+    component: AccountingComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'numbers',
-    component: NumbersComponent
+    component: NumbersComponent,
+    canActivate: [AuthGuard]
   }
 ];
 
@@ -80,7 +99,9 @@ const ROUTES = [
     TotalPipe,
     NumbersComponent,
     PaypalfeePipe,
-    EbayfeePipe
+    EbayfeePipe,
+    LoginComponent,
+    NavigationComponent
   ],
   imports: [
     BrowserModule,
@@ -93,13 +114,21 @@ const ROUTES = [
     ToasterModule
   ],
   providers: [
+    AuthGuard,
     OrdersService,
     AmazonService,
     WalmartService,
     AccountingService,
     NumbersService,
     ToasterService,
-    TrackingService],
+    TrackingService,
+    LoginComponent,
+    AuthService,
+    {
+      provide: AuthHttp,
+      useFactory: authHttpServiceFactory,
+      deps: [Http, RequestOptions]
+    }],
   bootstrap: [AppComponent]
 })
 

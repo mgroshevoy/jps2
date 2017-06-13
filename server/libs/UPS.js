@@ -84,8 +84,10 @@ class UPS {
 
 
       // Date
-
-      let m = body.match(/<dl>[\s\n\r]*<dt>[\s\n\r]*<label>[\s\n\r]*Scheduled(?: For Early)* Delivery(?: On)*:[\s\n\r]*<\/label>[\s\n\r]*<\/dt>[\s\n\r]*<dd>([\s\S]*?)<\/dd>[\s\n\r]*<\/dl>/);
+      let m;
+      if (body) {
+        m = body.match(/<dl>[\s\n\r]*<dt>[\s\n\r]*<label>[\s\n\r]*Scheduled(?: For Early)* Delivery(?: On)*:[\s\n\r]*<\/label>[\s\n\r]*<\/dt>[\s\n\r]*<dd>([\s\S]*?)<\/dd>[\s\n\r]*<\/dl>/);
+      }
       if (!m) return callback(new Error('No scheduled delivery.'));
 
       m = m[1].replace(/&nbsp;/g, '').match(/([\d]{2}\/[\d]{2}\/[\d]{4})/);
