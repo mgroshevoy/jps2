@@ -1,6 +1,5 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {WalmartService} from './walmart.service'
-import {Observable} from 'rxjs/Rx';
 import {Http} from '@angular/http';
 import {ToasterService, ToasterConfig} from 'angular2-toaster';
 
@@ -10,7 +9,7 @@ import {ToasterService, ToasterConfig} from 'angular2-toaster';
   styleUrls: ['./walmart.component.css']
 })
 export class WalmartComponent implements OnInit {
-
+  @ViewChild('importcsv') importcsv;
   orders: any = [];
   private toasterService: ToasterService;
   public toasterconfig: ToasterConfig =
@@ -30,25 +29,13 @@ export class WalmartComponent implements OnInit {
   }
 
   fileChange(event) {
-    const fileList: FileList = event.target.files;
-    if (fileList.length > 0) {
-      const file: File = fileList[0];
-      const formData: FormData = new FormData();
-      formData.append('uploadFile', file, file.name);
-      // let headers = new Headers();
-      // headers.append('Content-Type', 'multipart/form-data');
-      // headers.append('Accept', 'application/json');
-      // let options = new RequestOptions({headers: headers});
-      this.http.post('api/walmart', formData) // , options)
-        .map(res => res.json())
-        .catch(error => Observable.throw(error))
-        .subscribe(data => {
-            console.log(data);
-            this.orders = data;
-            this.toasterService.pop('info', 'Walmart orders updated!');
-          },
-          error => console.error(error)
-        )
-    }
+    this.walmartService.setUpdate(event.target.files)
+      .subscribe(data => {
+        this.orders = data;
+        this.toasterService.pop('info', 'Walmart orders updated!');
+        this.importcsv.nativeElement.value = '';
+      },
+      error => console.error(error)
+    );
   }
 }

@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 // const expressSession = require('express-session');
 // const hash = require('bcrypt-nodejs');
 const passport = require('passport');
-const localStrategy = require('passport-local' ).Strategy;
+const localStrategy = require('passport-local').Strategy;
 const jwt = require('express-jwt');
 
 // Get our API routes
@@ -27,7 +27,7 @@ app.use(multer({
 
 // Parsers for POST data
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(require('express-session')({
   secret: 'keyboard cat',
@@ -47,10 +47,12 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 // Set our api routes
-app.use('/api', jwt({ secret: process.env.JWT_SECRET}).unless({path: ['/api/login', '/api/register']}), function (req,res,next) {
-  //console.log(req.user);
-  next();
-});
+app.use(
+  '/api',
+  jwt({secret: process.env.JWT_SECRET}).unless({path: ['/api/login', '/api/register']}),
+  function (req, res, next) {
+    next();
+  });
 app.use('/api', api);
 
 // Catch all other routes and return the index file
