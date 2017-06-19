@@ -18,6 +18,120 @@ const UPS = require('../libs/UPS');
 const schedule = require('node-schedule');
 const _ = require('lodash');
 const jwt = require('jwt-simple');
+const ContextIO = require('contextio');
+const cheerio = require('cheerio');
+
+const ctxioClient = ContextIO({
+  key: "0ukneikt",
+  secret: "aXMDncj1tiT76bJ6",
+  version: 'lite'
+});
+
+function updateDeliveryStatus() {
+  ctxioClient
+    .users('594818c867ad614869062a83')
+    .email_accounts('0')
+    .folders('Inbox')
+    .messages()
+    .get({
+      limit: '100',
+      include_body: '1'
+    }).then(res => {
+    let amazonLetters = _.filter(res, function (letter) {
+      return letter.addresses.from[0].email.match(/(auto-confirm|tracking)@amazon\.com/);
+    });
+    let walmartLetters = _.filter(res, function (letter) {
+      return letter.addresses.from[0].email.match(/help@walmart\.com/);
+    });
+    console.log(walmartLetters.length);
+    for (let letter of walmartLetters) {
+      //console.log(letter.bodies);
+      const $ = cheerio.load(letter.bodies[0].content);
+      let orderId = $('td').map(function () {
+        return $(this).text().match(/\d{7}-\d{6}/);
+      }).get();
+      console.log(orderId);
+      if (orderId.length) {
+        let address = $('tbody').map(function () {
+          return $(this).text()
+            .replace(/(\t)/g, '')
+            .replace(/(?=(\n))\1{2,}/g, '"')
+            .replace(/"\s+"/g, '"')
+            .match(/Shipping\sto:"(.+?".+?".+?)(?=("))/g);
+        }).get();
+        if (address[0]) {
+          address[0] = address[0].split(/"/);
+          let trackingCarrier = $('td').map(function () {
+            return $(this).text().match(/(\w+)\stracking\snumber:/);
+          }).get();
+          console.log(trackingCarrier[1]);
+          let trackingNumber = $('td').map(function () {
+            return $(this).text().match(/[A-Z,0-9]{12}[0-9]+/);
+          }).get();
+          console.log(trackingNumber[0]);
+          let deliveryDate = $('td').map(function () {
+            return $(this).text().match(/\w{3},\s\w{3}\s\d+/);
+          }).get();
+          console.log(deliveryDate[0]);
+          let price = $('td').map(function () {
+            return $(this).text().match(/\$\d+\.\d+/);
+          }).get();
+          console.log(_.last(price));
+          console.log(letter.subject);
+          if (deliveryDate[0].match(/January/) && moment().month() === 11) {
+            deliveryDate[0] = moment(new Date(deliveryDate[0] + ', ' + (moment().year() + 1))).add(1, 'd').startOf('day');
+          } else {
+            deliveryDate[0] = moment(new Date(deliveryDate[0] + ', ' + moment().year())).add(1, 'd').startOf('day');
+          }
+          WalmartModel.findOne({id: orderId[0]}, (err, item) => {
+            if (item) {
+              item.delivery_date = deliveryDate[0];
+              if(trackingCarrier[1]){
+                item.tracking_number = trackingCarrier[1] + ' #' +trackingNumber[0];
+              }
+              item.save();
+            } else {
+              item = new WalmartModel({
+
+              });
+            }
+          });
+        }
+      }
+    }
+    console.log(amazonLetters.length);
+    for (let letter of amazonLetters) {
+      const $ = cheerio.load(letter.bodies[1].content);
+      let orderId = $('a').map(function () {
+        return $(this).text().match(/\d+-\d+-\d+/);
+      }).get();
+      if (orderId.length) {
+        let deliveryDate = $('p').map(function () {
+          return $(this).text().match(/\w+,\s\w+\s\d{1,2}\s/);
+        }).get();
+        console.log(deliveryDate);
+        console.log(orderId);
+        for (let i = 0; i < orderId.length; i++) {
+          if (deliveryDate[i]) {
+            if (deliveryDate[i].match(/January/) && moment().month() === 11) {
+              deliveryDate[i] = moment(new Date(deliveryDate[i] + ', ' + (moment().year() + 1))).add(1, 'd').startOf('day');
+            } else {
+              deliveryDate[i] = moment(new Date(deliveryDate[i] + ', ' + moment().year())).add(1, 'd').startOf('day');
+            }
+            AmazonModel.findOne({id: orderId[i]}, (err, item) => {
+              if (item) {
+                item.delivery_date = deliveryDate[i];
+                item.save();
+              }
+            });
+          }
+        }
+      }
+    }
+  }).catch(err => {
+    console.error(err);
+  });
+}
 
 if (!process.env.DEV_MODE) {
   let startAtNine = schedule.scheduleJob('00 9 * * *', function () {
@@ -41,6 +155,7 @@ let updateEveryTwoHours = schedule.scheduleJob('00 */2 * * *', function () {
       console.info(new Date(), 'Amazon orders update is failed!');
     });
   updateTrackingNumbers();
+  updateDeliveryStatus();
 });
 
 let updateEveryHour = schedule.scheduleJob('00 * * * *', function () {
@@ -63,7 +178,7 @@ function setTrackingNumbers(res) {
     for (order of threeDaysOrders) {
       for (item of order.items) {
         if (item.ShipmentTrackingDetails.length === 0 && order.order_status === 'Completed') {
-          if(order._doc.walmart.tracking_number) {
+          if (order._doc.walmart.tracking_number) {
             console.log(order._doc.walmart.tracking_number.match(/(.*)\s#/)[1]);
             console.log(order._doc.walmart.tracking_number.match(/#(.*)/)[1]);
             wmrt = yield Orders.ebayCompleteSale(
@@ -72,7 +187,7 @@ function setTrackingNumbers(res) {
               order._doc.walmart.tracking_number.match(/(.*)\s#/)[1]
             );
             console.log(wmrt);
-          } else if(order._doc.amazon.tracking_number && !(order._doc.amazon.tracking_number.indexOf('AMZN_US')+1)) {
+          } else if (order._doc.amazon.tracking_number && !(order._doc.amazon.tracking_number.indexOf('AMZN_US') + 1)) {
             console.log(order._doc.amazon.tracking_number.match(/(.*)\(/)[1]);
             console.log(order._doc.amazon.tracking_number.match(/\((.*)\)/)[1]);
             amzn = yield Orders.ebayCompleteSale(
@@ -449,9 +564,9 @@ router.post('/accounting', (req, res, next) => {
 });
 
 // User management
-router.post('/register', function(req, res) {
-  User.register(new User({ username: req.body.username }),
-    req.body.password, function(err, account) {
+router.post('/register', function (req, res) {
+  User.register(new User({username: req.body.username}),
+    req.body.password, function (err, account) {
       if (err) {
         return res.status(500).json({
           err: err
@@ -465,8 +580,8 @@ router.post('/register', function(req, res) {
     });
 });
 
-router.post('/login', function(req, res, next) {
-  passport.authenticate('local', function(err, user, info) {
+router.post('/login', function (req, res, next) {
+  passport.authenticate('local', function (err, user, info) {
     if (err) {
       return next(err);
     }
@@ -475,7 +590,7 @@ router.post('/login', function(req, res, next) {
         err: info
       });
     }
-    req.logIn(user, function(err) {
+    req.logIn(user, function (err) {
       if (err) {
         return res.status(500).json({
           err: 'Could not log in user'
@@ -485,10 +600,10 @@ router.post('/login', function(req, res, next) {
       user['exp'] = Math.round(Date.now() / 1000 + 5 * 60 * 60);
       console.log(user);
       const token = jwt.encode({
-          user: user.username,
-          iat: Math.round(Date.now() / 1000),
-          exp: Math.round(Date.now() / 1000 + 5 * 60 * 60)
-        }, process.env.JWT_SECRET);
+        user: user.username,
+        iat: Math.round(Date.now() / 1000),
+        exp: Math.round(Date.now() / 1000 + 5 * 60 * 60)
+      }, process.env.JWT_SECRET);
       console.log(token);
       console.log(jwt.decode(token, process.env.JWT_SECRET));
       res.status(200).json({
@@ -500,7 +615,7 @@ router.post('/login', function(req, res, next) {
   })(req, res, next);
 });
 
-router.get('/logout', function(req, res) {
+router.get('/logout', function (req, res) {
   req.logout();
   res.status(200).json({
     status: 'Bye!'

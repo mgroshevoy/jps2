@@ -20,7 +20,8 @@ const WalmartOrders = new Schema({
   url: String,
   address: String,
   total: Number,
-  tracking_number: String
+  tracking_number: String,
+  delivery_date: Date
 });
 
 const AmazonOrders = new Schema({
@@ -50,7 +51,8 @@ const AmazonOrders = new Schema({
   subtotal_tax: Number,
   total: Number,
   buyer_name: String,
-  currency: String
+  currency: String,
+  delivery_date: Date
 });
 
 const EbayOrders = new Schema({
