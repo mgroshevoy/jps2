@@ -27,6 +27,8 @@ const ctxioClient = ContextIO({
   version: 'lite'
 });
 
+updateDeliveryStatus();
+
 function updateDeliveryStatus() {
   ctxioClient
     .users('594818c867ad614869062a83')
@@ -66,7 +68,7 @@ function updateDeliveryStatus() {
           }).get();
           console.log(trackingCarrier[1]);
           let trackingNumber = $('td').map(function () {
-            return $(this).text().match(/[A-Z,0-9]{12}[0-9]+/);
+            return $(this).text().match(/[A-Z,0-9]{10}[0-9]+/);
           }).get();
           console.log(trackingNumber[0]);
           let deliveryDate = $('td').map(function () {
