@@ -47,12 +47,12 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 // Set our api routes
-app.use(
-  '/api',
-  jwt({secret: process.env.JWT_SECRET}).unless({path: ['/api/login', '/api/register']}),
-  function (req, res, next) {
-    next();
-  });
+// app.use(
+//   '/api',
+//   jwt({secret: process.env.JWT_SECRET}).unless({path: ['/api/login', '/api/register']}),
+//   function (req, res, next) {
+//     next();
+//   });
 app.use('/api', api);
 
 // Catch all other routes and return the index file
