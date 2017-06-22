@@ -24,7 +24,7 @@
   <tr *ngFor="let order of orders">
     <td>{{order.id}}</td>
     <td>{{order.date | amt}}</td>
-    <td>{{order.delivery_date | amt}}</td>
+    <td>{{order.delivery_date | date : 'MM/dd/yyyy'}}</td>
     <!--<td>{{order.url}}</td>-->
     <td>{{order.address}}</td>
     <td>{{order.total}}</td>

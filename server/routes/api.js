@@ -91,7 +91,6 @@ function setTrackingNumbers(res) {
         }
       }
     }
-    //res.send(threeDaysOrders);
     for (order of threeDaysOrders) {
       for (item of order.items) {
         if (item.ShipmentTrackingDetails.length === 0 && order.order_status === 'Completed') {
@@ -99,25 +98,40 @@ function setTrackingNumbers(res) {
         }
       }
     }
-    //console.log(checkedOrders);
     accounting = yield Orders.getOrders();
-    res.send(accounting);
-    let deliveryDate;
+    let deliveryDate, wrongNumber, resultNumber;
     for (order of checkedOrders) {
+      console.log(order.Orders.OrderID);
       let findedOrder = _.find(accounting, {id: order.Orders.OrderID});
       if (findedOrder._doc.amazon.delivery_date) {
-        deliveryDate = moment(findedOrder._doc.amazon.delivery_date).date();
-        console.log(deliveryDate);
-      } else if (findedOrder._doc.walmart.delivery_date) {
-
+        deliveryDate = findedOrder._doc.amazon.delivery_date;
+      } else {
+        deliveryDate = findedOrder._doc.walmart.delivery_date;
       }
-      console.log(findedOrder._doc.walmart.delivery_date);
-      trackingNumber = yield TrackingNumbersModel
-        .where({delivery: {$gt: moment().add(2, 'd')}}, {used: false})
-        .find((error, obj) => {
-          //console.log(obj);
-        })
-        .sort('-delivery');
+      if (deliveryDate) {
+        trackingNumber = yield TrackingNumbersModel
+          .where({delivery: {$gt: moment(deliveryDate), $lte: moment(deliveryDate).add(1, 'd')}}, {used: false})
+          .find()
+          .sort('-delivery');
+        console.log(trackingNumber);
+        wrongNumber = true;
+        for (let tracking of trackingNumber) {
+          resultNumber = yield Orders.ebayCompleteSale(order.id, tracking.tracking_number, 'UPS');
+          console.log(resultNumber);
+          if (!resultNumber.Errors) {
+            TrackingNumbersModel
+              .where({tracking_number: tracking.tracking_number}, {used: false})
+              .findOne((err, obj) => {
+               if (obj) {
+                 obj.used = true;
+                 obj.save();
+               }
+              });
+            break;
+          }
+        }
+      }
+
      //yield Orders.ebayCompleteSale(order.id, trackingNumber.tracking_number);
     }
     //res.send(trackingNumber);

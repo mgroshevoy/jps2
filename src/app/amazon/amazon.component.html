@@ -29,7 +29,7 @@
       <td>{{order.title}}</td>
       <td>{{order.asin_isbn}}</td>
       <td>{{order.shipment_date | amt}}</td>
-      <td>{{order.delivery_date | amt}}</td>
+      <td>{{order.delivery_date | date : 'MM/dd/yyyy'}}</td>
       <td>{{order.quantity}}</td>
       <td>{{order.total}}</td>
       <td>{{order.shipping_name}}, {{order.shipping_street1}}, {{order.shipping_street2}}, {{order.shipping_city}}, {{order.shipping_state}}, {{order.shipping_zip}}</td>
