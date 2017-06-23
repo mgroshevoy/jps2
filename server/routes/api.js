@@ -126,17 +126,13 @@ function setTrackingNumbers(res) {
               }
             });
           try {
-            try {
-              resultNumber = yield Orders.ebayCompleteSale(findedOrder.id, tracking.tracking_number, 'UPS');
-              //console.log(resultNumber);
-            } catch (e) {
-              //console.log(e.message);
-            } finally {
-              console.log('Continue');
-            }
+            resultNumber = yield Orders.ebayCompleteSale(findedOrder.id, tracking.tracking_number, 'UPS');
+            //console.log(resultNumber);
           } catch (e) {
             continue;
             //console.log(e.message);
+          } finally {
+            console.log('Continue');
           }
 
           if (resultNumber) {
@@ -145,7 +141,7 @@ function setTrackingNumbers(res) {
         }
       }
 
-     //yield Orders.ebayCompleteSale(order.id, trackingNumber.tracking_number);
+      //yield Orders.ebayCompleteSale(order.id, trackingNumber.tracking_number);
     }
     //res.send(trackingNumber);
   })((error, result) => {
