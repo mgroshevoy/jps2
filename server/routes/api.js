@@ -119,8 +119,10 @@ function setTrackingNumbers(res) {
         for (let tracking of trackingNumber) {
           try {
             resultNumber = yield Orders.ebayCompleteSale(findedOrder.id, tracking.tracking_number, 'UPS');
-          } catch (e){
-            console.log(resultNumber);
+          } catch (e) {
+            console.log(e);
+          } finally {
+            console.log ('Continue');
           }
           TrackingNumbersModel
             .where({tracking_number: tracking.tracking_number}, {used: false})
