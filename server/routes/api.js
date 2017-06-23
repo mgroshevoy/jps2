@@ -118,12 +118,16 @@ function setTrackingNumbers(res) {
         wrongNumber = true;
         for (let tracking of trackingNumber) {
           try {
-            resultNumber = yield Orders.ebayCompleteSale(findedOrder.id, tracking.tracking_number, 'UPS');
-            console.log(resultNumber);
+            try {
+              resultNumber = yield Orders.ebayCompleteSale(findedOrder.id, tracking.tracking_number, 'UPS');
+              console.log(resultNumber);
+            } catch (e) {
+              console.log(e.message);
+            } finally {
+              console.log('Continue');
+            }
           } catch (e) {
-            console.log(e);
-          } finally {
-            console.log ('Continue');
+            console.log(e.message);
           }
           TrackingNumbersModel
             .where({tracking_number: tracking.tracking_number}, {used: false})
