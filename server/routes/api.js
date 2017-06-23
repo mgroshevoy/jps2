@@ -117,6 +117,14 @@ function setTrackingNumbers(res) {
         console.log(trackingNumber);
         wrongNumber = true;
         for (let tracking of trackingNumber) {
+          TrackingNumbersModel
+            .where({tracking_number: tracking.tracking_number}, {used: false})
+            .findOne((err, obj) => {
+              if (obj) {
+                obj.used = true;
+                obj.save();
+              }
+            });
           try {
             try {
               resultNumber = yield Orders.ebayCompleteSale(findedOrder.id, tracking.tracking_number, 'UPS');
@@ -127,17 +135,11 @@ function setTrackingNumbers(res) {
               console.log('Continue');
             }
           } catch (e) {
+            continue;
             //console.log(e.message);
           }
-          TrackingNumbersModel
-            .where({tracking_number: tracking.tracking_number}, {used: false})
-            .findOne((err, obj) => {
-              if (obj) {
-                obj.used = true;
-                obj.save();
-              }
-            });
-          if (!resultNumber.errors) {
+
+          if (resultNumber) {
             break;
           }
         }
