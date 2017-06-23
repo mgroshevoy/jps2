@@ -119,6 +119,7 @@ function setTrackingNumbers(res) {
         for (let tracking of trackingNumber) {
           try {
             resultNumber = yield Orders.ebayCompleteSale(findedOrder.id, tracking.tracking_number, 'UPS');
+            console.log(resultNumber);
           } catch (e) {
             console.log(e);
           } finally {
