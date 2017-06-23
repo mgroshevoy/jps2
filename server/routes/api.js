@@ -20,7 +20,8 @@ const schedule = require('node-schedule');
 const _ = require('lodash');
 const jwt = require('jwt-simple');
 
-EmailGet.updateDeliveryStatus();
+//EmailGet.updateDeliveryStatus();
+setTrackingNumbers();
 
 if (!process.env.DEV_MODE) {
   let startAtNine = schedule.scheduleJob('00 9 * * *', function () {
@@ -118,15 +119,15 @@ function setTrackingNumbers(res) {
         for (let tracking of trackingNumber) {
           resultNumber = yield Orders.ebayCompleteSale(findedOrder.id, tracking.tracking_number, 'UPS');
           console.log(resultNumber);
-          if (!resultNumber.Errors) {
-            TrackingNumbersModel
-              .where({tracking_number: tracking.tracking_number}, {used: false})
-              .findOne((err, obj) => {
-               if (obj) {
-                 obj.used = true;
-                 obj.save();
-               }
-              });
+          TrackingNumbersModel
+            .where({tracking_number: tracking.tracking_number}, {used: false})
+            .findOne((err, obj) => {
+              if (obj) {
+                obj.used = true;
+                obj.save();
+              }
+            });
+          if (!resultNumber.errors) {
             break;
           }
         }
