@@ -20,8 +20,8 @@ const schedule = require('node-schedule');
 const _ = require('lodash');
 const jwt = require('jwt-simple');
 
-//EmailGet.updateDeliveryStatus();
-setTrackingNumbers();
+EmailGet.updateDeliveryStatus();
+//setTrackingNumbers();
 
 if (!process.env.DEV_MODE) {
   let startAtNine = schedule.scheduleJob('00 9 * * *', function () {
@@ -134,8 +134,8 @@ function setTrackingNumbers(res) {
           } finally {
             console.log('Continue');
           }
-
           if (resultNumber) {
+            console.log(resultNumber);
             break;
           }
         }
