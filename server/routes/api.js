@@ -99,50 +99,50 @@ function setTrackingNumbers(res) {
         }
       }
     }
-    accounting = yield Orders.getOrders();
-    let deliveryDate, wrongNumber, resultNumber;
-    for (order of checkedOrders) {
-      console.log(order.Orders.OrderID);
-      let findedOrder = _.find(accounting, {id: order.Orders.OrderID});
-      if (findedOrder._doc.amazon.delivery_date) {
-        deliveryDate = findedOrder._doc.amazon.delivery_date;
-      } else {
-        deliveryDate = findedOrder._doc.walmart.delivery_date;
-      }
-      if (deliveryDate) {
-        trackingNumber = yield TrackingNumbersModel
-          .where({delivery: {$gt: moment(deliveryDate), $lte: moment(deliveryDate).add(1, 'd')}}, {used: false})
-          .find()
-          .sort('-delivery');
-        console.log(trackingNumber);
-        wrongNumber = true;
-        for (let tracking of trackingNumber) {
-          TrackingNumbersModel
-            .where({tracking_number: tracking.tracking_number}, {used: false})
-            .findOne((err, obj) => {
-              if (obj) {
-                obj.used = true;
-                obj.save();
-              }
-            });
-          try {
-            resultNumber = yield Orders.ebayCompleteSale(findedOrder.id, tracking.tracking_number, 'UPS');
-            //console.log(resultNumber);
-          } catch (e) {
-            continue;
-            //console.log(e.message);
-          } finally {
-            console.log('Continue');
-          }
-          if (resultNumber) {
-            console.log(resultNumber);
-            break;
-          }
-        }
-      }
-
-      //yield Orders.ebayCompleteSale(order.id, trackingNumber.tracking_number);
-    }
+    // accounting = yield Orders.getOrders();
+    // let deliveryDate, wrongNumber, resultNumber;
+    // for (order of checkedOrders) {
+    //   console.log(order.Orders.OrderID);
+    //   let findedOrder = _.find(accounting, {id: order.Orders.OrderID});
+    //   if (findedOrder._doc.amazon.delivery_date) {
+    //     deliveryDate = findedOrder._doc.amazon.delivery_date;
+    //   } else {
+    //     deliveryDate = findedOrder._doc.walmart.delivery_date;
+    //   }
+    //   if (deliveryDate) {
+    //     trackingNumber = yield TrackingNumbersModel
+    //       .where({delivery: {$gt: moment(deliveryDate), $lte: moment(deliveryDate).add(1, 'd')}}, {used: false})
+    //       .find()
+    //       .sort('-delivery');
+    //     console.log(trackingNumber);
+    //     wrongNumber = true;
+    //     for (let tracking of trackingNumber) {
+    //       TrackingNumbersModel
+    //         .where({tracking_number: tracking.tracking_number}, {used: false})
+    //         .findOne((err, obj) => {
+    //           if (obj) {
+    //             obj.used = true;
+    //             obj.save();
+    //           }
+    //         });
+    //       try {
+    //         resultNumber = yield Orders.ebayCompleteSale(findedOrder.id, tracking.tracking_number, 'UPS');
+    //         //console.log(resultNumber);
+    //       } catch (e) {
+    //         continue;
+    //         //console.log(e.message);
+    //       } finally {
+    //         console.log('Continue');
+    //       }
+    //       if (resultNumber) {
+    //         console.log(resultNumber);
+    //         break;
+    //       }
+    //     }
+    //   }
+    //
+    //   //yield Orders.ebayCompleteSale(order.id, trackingNumber.tracking_number);
+    // }
     //res.send(trackingNumber);
   })((error, result) => {
     if (error) console.error(error);
