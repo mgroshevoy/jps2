@@ -68,14 +68,16 @@ class EmailGet {
             }).get();
             console.log(_.last(price));
             console.log(letter.subject);
-            if (deliveryDate[0].match(/January/) && moment().month() === 11) {
-              deliveryDate[0] = moment(new Date(deliveryDate[0] + ', ' + (moment().year() + 1)));
-            } else {
-              deliveryDate[0] = moment(new Date(deliveryDate[0] + ', ' + moment().year()));
+            if(deliveryDate[0]) {
+              if (deliveryDate[0].match(/January/) && moment().month() === 11) {
+                deliveryDate[0] = moment(new Date(deliveryDate[0] + ', ' + (moment().year() + 1)));
+              } else {
+                deliveryDate[0] = moment(new Date(deliveryDate[0] + ', ' + moment().year()));
+              }
             }
             WalmartModel.findOne({id: orderId[0]}, (err, item) => {
               if (item) {
-                item.delivery_date = deliveryDate[0];
+                if (deliveryDate[0]) item.delivery_date = deliveryDate[0];
                 if (trackingCarrier[1]) {
                   item.tracking_number = trackingCarrier[1] + ' #' + trackingNumber[0];
                 }
