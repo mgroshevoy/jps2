@@ -20,6 +20,19 @@ const schedule = require('node-schedule');
 const _ = require('lodash');
 const jwt = require('jwt-simple');
 
+// vo(function*() {
+//   let ex = yield Orders.ebayCompleteSale('122551186520-1811543509002', '1Z3YE9030313978127');
+//   console.log(ex);
+// })((error, result) => {
+//   if (error) console.error(error);
+// });
+
+// Orders.ebayCompleteSale().then(res => {
+//   console.log(res);
+// }).catch(error => {
+//   console.error(error);
+// });
+
 EmailGet.updateDeliveryStatus();
 //setTrackingNumbers();
 
@@ -62,7 +75,10 @@ let updateEveryHour = schedule.scheduleJob('00 * * * *', function () {
 
 function setTrackingNumbers(res) {
   vo(function*() {
-    let threeDaysOrders = yield Orders.getOrders(moment().subtract(3, 'days').startOf('day').add(7, 'hours'));
+    let threeDaysOrders = yield Orders.getOrders(
+      moment().subtract(3, 'days').startOf('day').add(7, 'hours'),
+      moment().subtract(1, 'days').startOf('day').add(7, 'hours')
+    );
     let wmrt, amzn, checkedOrders = [], trackingNumber, accounting;
 
     for (order of threeDaysOrders) {
@@ -99,51 +115,49 @@ function setTrackingNumbers(res) {
         }
       }
     }
-    // accounting = yield Orders.getOrders();
-    // let deliveryDate, wrongNumber, resultNumber;
-    // for (order of checkedOrders) {
-    //   console.log(order.Orders.OrderID);
-    //   let findedOrder = _.find(accounting, {id: order.Orders.OrderID});
-    //   if (findedOrder._doc.amazon.delivery_date) {
-    //     deliveryDate = findedOrder._doc.amazon.delivery_date;
-    //   } else {
-    //     deliveryDate = findedOrder._doc.walmart.delivery_date;
-    //   }
-    //   if (deliveryDate) {
-    //     trackingNumber = yield TrackingNumbersModel
-    //       .where({delivery: {$gt: moment(deliveryDate), $lte: moment(deliveryDate).add(1, 'd')}}, {used: false})
-    //       .find()
-    //       .sort('-delivery');
-    //     console.log(trackingNumber);
-    //     wrongNumber = true;
-    //     for (let tracking of trackingNumber) {
-    //       TrackingNumbersModel
-    //         .where({tracking_number: tracking.tracking_number}, {used: false})
-    //         .findOne((err, obj) => {
-    //           if (obj) {
-    //             obj.used = true;
-    //             obj.save();
-    //           }
-    //         });
-    //       try {
-    //         resultNumber = yield Orders.ebayCompleteSale(findedOrder.id, tracking.tracking_number, 'UPS');
-    //         //console.log(resultNumber);
-    //       } catch (e) {
-    //         continue;
-    //         //console.log(e.message);
-    //       } finally {
-    //         console.log('Continue');
-    //       }
-    //       if (resultNumber) {
-    //         console.log(resultNumber);
-    //         break;
-    //       }
-    //     }
-    //   }
-    //
-    //   //yield Orders.ebayCompleteSale(order.id, trackingNumber.tracking_number);
-    // }
-    //res.send(trackingNumber);
+    accounting = yield Orders.getOrders();
+    let deliveryDate, resultComplete;
+    for (order of checkedOrders) {
+      console.log(order.Orders.OrderID);
+      let findedOrder = _.find(accounting, {id: order.Orders.OrderID});
+      if (findedOrder._doc.amazon.delivery_date) {
+        deliveryDate = findedOrder._doc.amazon.delivery_date;
+      } else {
+        deliveryDate = findedOrder._doc.walmart.delivery_date;
+      }
+      if (deliveryDate) {
+        trackingNumber = yield TrackingNumbersModel
+          .where({delivery: {$gt: moment(deliveryDate)}}, {used: false})
+          .find()
+          .sort('-delivery');
+        for (let tracking of trackingNumber) {
+            resultComplete = yield Orders.ebayCompleteSale(findedOrder.id, tracking.tracking_number);
+          if (resultComplete) {
+            console.log(resultComplete);
+            if (resultComplete.CompleteSaleResponse.Ack === 'Success') {
+              TrackingNumbersModel
+                .where({tracking_number: tracking.tracking_number}, {used: false})
+                .findOne((err, obj) => {
+                  if (obj) {
+                    obj.used = true;
+                    obj.save();
+                  }
+                });
+              break;
+            }
+          } else break;
+
+          TrackingNumbersModel
+            .where({tracking_number: tracking.tracking_number}, {used: false})
+            .findOne((err, obj) => {
+              if (obj) {
+                obj.used = true;
+                obj.save();
+              }
+            });
+        }
+      }
+    }
   })((error, result) => {
     if (error) console.error(error);
   });

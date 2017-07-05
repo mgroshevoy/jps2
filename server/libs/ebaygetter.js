@@ -9,6 +9,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const Nightmare = require('nightmare');
 require('nightmare-download-manager')(Nightmare);
+const X2JS = require('x2js');
 
 const EbayModel = require('../libs/mongoose').EbayModel;
 const AmazonModel = require('../libs/mongoose').AmazonModel;
@@ -162,7 +163,7 @@ class Orders {
         .click('#report-last30Days')
         .wait()
         .click('#report-confirm')
-        .wait()
+        .wait(10000)
         .waitDownloadsComplete()
         .end()
         .then(() => {
@@ -181,42 +182,87 @@ class Orders {
     });
   }
 
-  ebayCompleteSale(orderId, trackingNumber, trackingCarrier = 'UPS') {
-    return new Promise((resolve, reject) => {
-      ebay.xmlRequest({
-        serviceName: 'Trading',
-        opType: 'CompleteSale',
-
-        // app/environment
-        devId: process.env.EBAY_DEVID,
-        certId: process.env.EBAY_CERTID,
-        appId: process.env.EBAY_APPID,
-        sandbox: false,
-
-        // per user
-        authToken: process.env.EBAY_AUTHTOKEN,
-
-        params: {
-          WarningLevel: 'High',
-          OrderID: orderId,
-          // Paid: true,
-          // Shipped: true,
-          Shipment: {
-            ShipmentTrackingDetails: {
-              ShipmentTrackingNumber: trackingNumber,
-              ShippingCarrierUsed: trackingCarrier,
-            }
-          },
-          // ShippedTime: shippedTime,
-        }
-      }, function (error, results) {
-        if (error) {
-          console.error(error);
-          reject(error);
-        }
-        resolve(results);
+  async ebayCompleteSale(orderId, trackingNumber, trackingCarrier = 'UPS') {
+    let x2js = new X2JS();
+    let transactionID, itemID;
+    if (orderId.match(/(\d+)-/)) {
+      transactionID = orderId.match(/-(\d+)/)[1];
+      itemID = orderId.match(/(\d+)-/)[1];
+    } else {
+      transactionID = '0';
+      itemID = orderId;
+    }
+    try {
+      let response = await axios({
+        method: 'post',
+        url: 'https://api.ebay.com/ws/api.dll',
+        headers: {
+          'X-EBAY-API-COMPATIBILITY-LEVEL': '911',
+          'X-EBAY-API-SITEID': '3',
+          'X-EBAY-API-CALL-NAME': 'CompleteSale'
+        },
+        data: '<?xml version="1.0" encoding="utf-8"?>' +
+        x2js.js2xml({
+          "CompleteSaleRequest": {
+            "RequesterCredentials": {
+              "eBayAuthToken": process.env.EBAY_AUTHTOKEN
+            },
+            "WarningLevel": "High",
+            "TransactionID": transactionID,
+            "Shipped": "true",
+            "ItemID": itemID,
+            "Shipment": {
+              "ShipmentTrackingDetails": {
+                "ShipmentTrackingNumber": trackingNumber,
+                "ShippingCarrierUsed": trackingCarrier
+              }
+            },
+            "_xmlns": "urn:ebay:apis:eBLBaseComponents"
+          }
+        })
       });
-    });
+      return x2js.xml2js(response.data);
+    } catch (e) {
+      console.log(e);
+      return {
+        message: e.data.message,
+      }
+    }
+
+      //
+      // ebay.xmlRequest({
+      //   serviceName: 'Trading',
+      //   opType: 'CompleteSale',
+      //
+      //   // app/environment
+      //   devId: process.env.EBAY_DEVID,
+      //   certId: process.env.EBAY_CERTID,
+      //   appId: process.env.EBAY_APPID,
+      //   sandbox: false,
+      //
+      //   // per user
+      //   authToken: process.env.EBAY_AUTHTOKEN,
+      //
+      //   params: {
+      //     WarningLevel: 'High',
+      //     OrderID: orderId,
+      //     // Paid: true,
+      //     // Shipped: true,
+      //     Shipment: {
+      //       ShipmentTrackingDetails: {
+      //         ShipmentTrackingNumber: trackingNumber,
+      //         ShippingCarrierUsed: trackingCarrier,
+      //       }
+      //     },
+      //     // ShippedTime: shippedTime,
+      //   }
+      // }, function (error, results) {
+      //   if (error) {
+      //     console.error(error);
+      //     reject(error);
+      //   }
+      //   resolve(results);
+      // });
   }
 
 
@@ -381,7 +427,7 @@ class Orders {
                 ItemID: transaction.Item.ItemID,
                 Title: transaction.Item.Title,
                 SKU: transaction.Item.SKU,
-                FinalValueFee: transaction.FinalValueFee?transaction.FinalValueFee._:'',
+                FinalValueFee: transaction.FinalValueFee ? transaction.FinalValueFee._ : '',
                 ShipmentTrackingDetails: transaction.ShippingDetails.ShipmentTrackingDetails ? transaction.ShippingDetails.ShipmentTrackingDetails : [],
                 QuantityPurchased: transaction.QuantityPurchased,
               });
@@ -533,10 +579,9 @@ class Orders {
    * @param dateFrom
    * @param dateTo
    */
-  getOrders(
-            dateFrom = moment().subtract(30, 'days').startOf('day').add(7, 'hours'),
+  getOrders(dateFrom = moment().subtract(30, 'days').startOf('day').add(7, 'hours'),
             dateTo = moment().startOf('day').add(7, 'hours')) {
-    return new Promise ((resolve,reject) => {
+    return new Promise((resolve, reject) => {
       EbayModel
         .where('created_time').gte(moment(dateFrom).startOf('day')).lte(moment(dateTo).endOf('day'))
         .sort('-created_time')
