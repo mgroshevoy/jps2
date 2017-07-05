@@ -37,7 +37,11 @@ class Orders {
           //console.error(err);
           reject(err);
         } else {
-          fs.unlinkSync(this.csvDir(strFileName));
+          try {
+            fs.unlinkSync(this.csvDir(strFileName));
+          } catch (e) {
+            console.error(e);
+          }
           resolve(data);
         }
       });
@@ -223,7 +227,7 @@ class Orders {
       });
       return x2js.xml2js(response.data);
     } catch (e) {
-      console.log(e);
+      console.error(e);
       return {
         message: e.data.message,
       }

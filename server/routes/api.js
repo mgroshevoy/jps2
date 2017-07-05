@@ -164,7 +164,7 @@ function setTrackingNumbers(res) {
 }
 
 function updateTrackingNumbers() {
-  const MAX_ERRORS = 10;
+  const MAX_ERRORS = 100;
   const MAX_COUNT = 500; // How many invoice numbers to catch.
   //const NUMBER = '1ZA3720W0313828028';
   const DATE = moment().add(2, 'days');
